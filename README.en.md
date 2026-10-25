@@ -187,7 +187,7 @@ automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
 
 ## 中文文档
 
-简体中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
+简体中文说明见 [README.md](./README.md)（默认显示）。
 
 ## License
 
