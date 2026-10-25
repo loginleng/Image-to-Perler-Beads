@@ -247,15 +247,11 @@
             >{{ previewHoverTip.text }}</div>
           </Teleport>
 
-          <!-- Export / Save / Order Buttons：空白画布没有可导出内容 -->
+          <!-- Export Button：空白画布没有可导出内容 -->
           <div v-if="result && hasCanvasContent" class="flex flex-wrap gap-3 mt-4">
             <button @click="exportPng" class="modern-btn modern-btn-primary modern-btn-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               {{ $t('tool.exportPng') }}
-            </button>
-            <button @click="exportPdf" class="modern-btn modern-btn-secondary modern-btn-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              {{ $t('tool.exportPdf') }}
             </button>
           </div>
         </div>
@@ -1939,11 +1935,6 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   ctx.arcTo(x, y + h, x, y, r)
   ctx.arcTo(x, y, x + w, y, r)
   ctx.closePath()
-}
-
-function exportPdf() {
-  if (!result.value) return
-  window.print()
 }
 
 // ==================== 草稿持久化（刷新 / 重新打开页面后创作内容不遗失） ====================

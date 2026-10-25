@@ -37,8 +37,8 @@ version of the same engine, so you can read the code and run it locally.
 - **Guides**: 10-cell guide grid, row/column coordinates with adjustable label step, zoom.
 - **Statistics**: bead count per color, total beads, estimated weight, finished size in cm.
 - **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
-  so codes stay readable), plus “Export PDF” which opens the browser print dialog.
-  Example output: [`docs/export-sample.png`](docs/export-sample.png) (52 columns, 2568×2732 px).
+  so codes stay readable). Example output: [`docs/export-sample.png`](docs/export-sample.png)
+  (52 columns, 2568×2732 px).
 - **Local draft**: your pattern and settings are restored from `localStorage` on reload.
 
 ## Quick start
@@ -150,8 +150,6 @@ automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
 
 ## Notes
 
-- **Export PDF is the browser print dialog**, not a generated PDF file. Choose “Save as PDF”
-  in the print dialog if you need a file.
 - Everything runs on the main thread: for very large charts (100+ columns) generation takes a
   moment on low-end phones, but nothing blocks the UI permanently.
 - This project is a trimmed fork of our internal editor; commerce, 3D, accounts and the
