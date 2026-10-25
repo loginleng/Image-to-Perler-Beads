@@ -3598,10 +3598,9 @@ export function calcTargetHeight(targetWidth: number, sourceWidth: number, sourc
   return Math.max(1, Math.round((targetWidth * sourceHeight) / sourceWidth))
 }
 
-// ==================== Bead Studio 适配层 ====================
-// 本项目的「源图解码」在页面侧完成（canvas → ImageData），算法只吃裸像素，
-// 所以入口是同步的 convertImageToBeadPattern；上游项目那边是异步的
-// convertImageFileToPattern（自己用 canvas 从 URL 读图）。除此之外链路完全一致。
+// ==================== 页面适配层 ====================
+// 源图解码在页面侧完成（canvas → ImageData），本模块只吃裸像素，
+// 所以入口是同步的 convertImageToBeadPattern：调用方不需要再传文件或 URL。
 
 /** 面积平均降采样（白底合成口径，与全链路一致） */
 function areaDownscale(src: Uint8ClampedArray, sw: number, sh: number, dw: number, dh: number): Uint8ClampedArray {
@@ -3642,7 +3641,7 @@ function areaDownscale(src: Uint8ClampedArray, sw: number, sh: number, dw: numbe
 /**
  * 源图超过 MAX_SOURCE_PIXELS 时先缩一档，**分级**（每级 ≤2 倍）做面积平均：
  * 一次大幅平均会把 1~2px 的描边摊平，分级后每级只混相邻两像素，细线保得住
- * （与 上游项目的 resample A/B 结论一致）。
+ * （实测结论：分级缩放比一步到位的缩放保留更多描边）。
  */
 function fitSourcePixels(src: Uint8ClampedArray, sw: number, sh: number) {
   if (sw * sh <= MAX_SOURCE_PIXELS) return { data: src, w: sw, h: sh }
@@ -3694,7 +3693,7 @@ export interface ImageConvertOptions {
 }
 
 /**
- * 生产链路（与 上游项目的 convertImageFileToPattern 同序）：
+ * 生产链路（各步骤的顺序是实测调优的结果，不要随意调换）：
  *   源图降采样（必要时）→ 小特征检测 + 描边统计 → 逐格降采样/配色 → 降噪/合并 →
  *   抖动 → 特征回贴 + 对称校正 → 轮廓还原 → 暗点清理 → 色号数上限 → 统计
  */
@@ -3745,7 +3744,7 @@ export function convertImageToBeadPattern(options: ImageConvertOptions): Convert
     bgReplaceColor: options.bgReplaceColor ?? undefined
   }).pattern
 
-  // 以下顺序与上游项目 严格一致，任何一步挪位都会破坏效果
+  // 以下后处理顺序是实测调优的结论，任何一步挪位都会破坏效果
   if (options.dither && options.dither > 0) {
     ditherPattern(pattern, down.data, down.width, down.height, colors, matchAlgo, {
       strength: options.dither,

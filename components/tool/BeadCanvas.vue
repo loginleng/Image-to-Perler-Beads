@@ -57,7 +57,7 @@
 // （滚轮缩放、拖动平移、鼠标悬停色号、画笔/橡皮/替色的落点换算）。
 //
 // 组件只读 pattern：涂画不在这里改数据，而是把命中的格子 emit 给页面，
-// 由页面统一改 pattern / 重算统计 / 存草稿，保证「一个数据源」。
+// 由页面统一改 pattern / 重算统计，保证「一个数据源」。
 import type { CSSProperties } from 'vue'
 import { createBeadCanvas, type BeadStyle } from '~/utils/bead-algorithm'
 import { drawGuideOverlay, GUIDE_MARGIN } from '~/utils/bead-canvas'

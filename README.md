@@ -27,7 +27,9 @@ version of the same engine, so you can read the code and run it locally.
 
 <img src="docs/screenshot.png" width="760" alt="Bead Studio editor screenshot" />
 
-- **Image → pattern**: drag & drop / click to upload, crop with zoom & pan, then generate.
+- **Image → pattern**: drag & drop / click to upload, crop with zoom & pan — the chart
+  regenerates automatically on every change (with a clear warning before it overwrites
+  manual edits).
 - **Sizes**: 52 / 78 / 104 columns; height follows the source aspect ratio.
 - **Palettes**: pluggable color sets with optional “variants” (sub-sets of a palette).
 - **Color matching**: Euclidean RGB, CIELAB (ΔE76) or **CIEDE2000**, switchable.
@@ -182,7 +184,7 @@ automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
 
 ## 中文简介
 
-把一个图片转成拼豆图纸的网页编辑器：拖图 → 选宽度 → 生成图纸 → 逐格改色 → 导出 PNG 或打印。
+把一个图片转成拼豆图纸的网页编辑器：拖图 → 裁剪 → 自动出图纸 → 逐格改色 → 导出 PNG。
 **不登录、不上传、不联网**，算法全部在浏览器里跑（`utils/bead-algorithm.ts` 是核心）。
 
 ```bash

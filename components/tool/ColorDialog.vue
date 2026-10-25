@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 // 选色弹窗：画笔/替色选中即回传，整体替换需要「源 → 目标」再确认。
-// 目标色是弹窗内部状态（还没确认的草稿），其余全部来自页面。
+// 目标色是弹窗内部的暂存值（还没点确认），其余全部来自页面。
 import type { BeadColor } from '~/types'
 
 const props = defineProps<{

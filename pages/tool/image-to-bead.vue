@@ -53,21 +53,10 @@
       <div class="min-w-0 lg:col-span-2 space-y-6">
         <!-- Preview Card -->
         <div class="modern-card p-6">
-          <!-- 预览标题栏：左侧标题，右侧「生成 / 清空 / 缩放」 -->
+          <!-- 预览标题栏：左侧标题，右侧「清空 / 缩放」（参数改动自动重生成，不再有生成按钮） -->
           <div class="flex items-center justify-between mb-3 gap-3">
             <h2 class="text-lg font-bold text-gray-900 shrink-0">{{ $t('tool.preview') }}</h2>
             <div class="flex flex-wrap items-center justify-end gap-2">
-              <!-- 上传图片后不再自动生成：由用户确认参数后手动生成 -->
-              <button
-                v-if="imageData"
-                type="button"
-                @click="onGenerate"
-                :disabled="processing"
-                class="modern-btn modern-btn-primary modern-btn-sm"
-                :class="{ 'opacity-60 cursor-wait': processing }"
-              >
-                {{ paramsDirty || hasCanvasContent ? $t('tool.regenerate') : $t('tool.generate') }}
-              </button>
               <!-- 清空画布：同时清掉上传的图片与预览图 -->
               <button
                 v-if="result"
@@ -116,6 +105,12 @@
             @open-color="openBrushColorPicker"
             @undo="undoPaint"
           />
+
+          <!-- 覆盖提示：重新生成会用图片结果替换画布上的手动修改 -->
+          <div v-if="overwriteNotice" class="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-300 text-xs text-amber-800 flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            {{ $t('tool.overwriteNotice') }}
+          </div>
 
           <!-- Error message -->
           <div v-if="errorMsg" class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
@@ -204,11 +199,12 @@
       @close="closeColorPicker"
     />
 
-    <!-- 裁剪弹窗 -->
+    <!-- 裁剪弹窗：确认即重生成，画布已有内容时给出覆盖警告 -->
     <CropDialog
       :open="showCropModal"
       :source="sourceCanvas"
       :image-url="previewUrl"
+      :will-overwrite="hasCanvasContent"
       @confirm="onCropConfirm"
       @cancel="cancelCrop"
     />
@@ -271,10 +267,9 @@ const patternStyle = ref('flat')
 // 切风格会把整组参数重置成那一档的值（否则会出现「风格是 photo、参数还是 flat」的错位）。
 const patternParams = ref<PatternParams>(paramsFromStyle(patternStyle.value))
 
-/** 高级参数改动：换成新对象（画布/预览都按值比较），并标记需要重新生成 */
+/** 高级参数改动：换成新对象（patternParams 的 watch 负责防抖重生成） */
 function onParamsChange(next: PatternParams) {
   patternParams.value = next
-  if (imageData.value) paramsDirty.value = true
 }
 
 // Zoom
@@ -327,7 +322,7 @@ const effectiveCellSize = computed(() => {
 })
 
 const zoomPercent = computed(() => Math.round(zoomLevel.value))
-// 有图（或恢复的草稿图案）即视为有内容，控制工具栏/空状态显隐
+// 有图（或已生成过图案）即视为有内容，控制工具栏/空状态显隐
 const hasImage = computed(() => !!imageData.value || !!result.value)
 
 // 画布是否已有可拼珠的格子（全透明 = 空白画布，不算内容）
@@ -342,8 +337,11 @@ const hasCanvasContent = computed(() => {
   return false
 })
 
-// 参数改过但还没重新生成：上传图片后不再自动转换，统一由「生成图纸」按钮触发
-const paramsDirty = ref(false)
+// 重生成会覆盖画布上的手动修改：提示在转换期间出现，并在结束后再停留几秒
+// （52 格的转换常常一闪而过，只挂 processing 的话用户根本看不到）。
+const hadEditsBeforeConvert = ref(false)
+const overwriteNotice = computed(() => hadEditsBeforeConvert.value)
+let noticeTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 交给画布的工具态：三个开关互斥，统一折算成一个值 */
 const canvasTool = computed<'none' | 'brush' | 'eraser' | 'replace'>(() => {
@@ -436,36 +434,56 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (paintRaf) cancelAnimationFrame(paintRaf)
+  if (autoConvertTimer) clearTimeout(autoConvertTimer)
+  if (noticeTimer) clearTimeout(noticeTimer)
 })
 
-// 影响转换的参数：不再自动重新生成，只标记「待生成」，由用户点「生成图纸」
-// 修改图纸大小：有原图时等生成；没有原图时，空白画布直接按新宽度重建
+// ==================== 自动重生成 ====================
+// 只要有原图，任何影响量化的改动（宽度 / 色板 / 风格 / 高级参数）都直接重出图纸，
+// 不再经过「生成图纸」按钮；防抖把连续拖动滑块合并成一次转换。
+// 注意：重生成会覆盖画布上的手动修改 —— 转换期间有醒目的覆盖提示（见模板）。
+const AUTO_CONVERT_DELAY = 500
+let autoConvertTimer: ReturnType<typeof setTimeout> | null = null
+
+function scheduleAutoConvert() {
+  if (!imageData.value) return
+  if (autoConvertTimer) clearTimeout(autoConvertTimer)
+  autoConvertTimer = setTimeout(() => {
+    autoConvertTimer = null
+    convertImage()
+  }, AUTO_CONVERT_DELAY)
+}
+
+// 修改图纸大小：有原图时自动重生成；没有原图时，空白画布直接按新宽度重建
 watch(selectedGridSize, () => {
   if (imageData.value) {
-    paramsDirty.value = true
+    scheduleAutoConvert()
     return
   }
   // 已有手绘内容时保持不动，避免改宽度把画的东西清掉
   if (!hasCanvasContent.value) resetToBlankCanvas()
 })
 
-// 切换色板/套餐：当前选中色不在新套餐内时重置；色板变化先重绘，真正重新量化仍要点生成
+// 切换色板/套餐：当前选中色不在新套餐内时重置；有原图时自动按新色板重出图纸
 watch([selectedPaletteId, selectedVariantId], () => {
   if (selectedColorCode.value && !currentBrandColors.value.some(c => c.code === selectedColorCode.value)) {
     selectedColorCode.value = null
     patternSnapshot.value = null
   }
-  if (imageData.value) paramsDirty.value = true
   ensureBrushColor()
   bumpRender()
+  scheduleAutoConvert()
 }, { deep: true })
 
-// 切换图纸风格：整组参数换成该预设的值（高级参数面板随之一致），
-// 但真正重新量化仍要点「生成图纸」
+// 切换图纸风格：整组参数换成该预设的值；patternParams 的 watch 会触发自动重生成
 watch(patternStyle, (key) => {
   patternParams.value = paramsFromStyle(key)
-  if (imageData.value) paramsDirty.value = true
 })
+
+// 高级参数（含风格切换带入的新参数）：有原图就防抖重出图纸
+watch(patternParams, () => {
+  scheduleAutoConvert()
+}, { deep: true })
 
 // 珠子样式变化：画布要换绘制方式，但不重新量化
 watch(selectedStyle, () => {
@@ -492,7 +510,6 @@ function resetToBlankCanvas() {
   eraserEnabled.value = false
   replaceEnabled.value = false
   showColorPicker.value = false
-  paramsDirty.value = false
   ensureBrushColor()
   nextTick(() => bumpRender())
 }
@@ -527,14 +544,6 @@ function clearCanvas() {
     bumpRender()
     beadCanvasRef.value?.resetView()
   })
-}
-
-/** 手动生成：上传 / 裁剪图片后由用户点击，不再自动转换 */
-function onGenerate() {
-  if (!imageData.value) return
-  if (hasCanvasContent.value && !window.confirm(t('tool.generateClearsCanvas'))) return
-  // 生成成功后 convertImage 会清掉 paramsDirty；失败时保留，方便用户重试
-  convertImage()
 }
 
 function loadImage(file: File) {
@@ -573,20 +582,19 @@ function loadImage(file: File) {
 }
 
 // ==================== Crop handlers ====================
-/** 裁剪确认：收下 ImageData 与预览 URL，等用户点「生成图纸」再量化 */
+/** 裁剪确认：收下 ImageData 与预览 URL，并立即按图片重出图纸 */
 function onCropConfirm(payload: { imageData: ImageData; url: string }) {
   imageData.value = payload.imageData
   if (croppedPreviewUrl.value) URL.revokeObjectURL(croppedPreviewUrl.value)
   croppedPreviewUrl.value = payload.url
   showCropModal.value = false
   cropReopened = false
-  // 不自动生成：裁剪结果只更新对照图，用户点「生成图纸」才真正转换
-  paramsDirty.value = true
+  convertImage()
 }
 
 /**
  * 点击缩略图重新打开裁剪弹窗。
- * 草稿恢复的图只有 imageData（原图 canvas 没被保存下来）：据它补一张底图，
+ * 若当前只有 imageData（例如其它入口只带来了像素数据），先据它补一张底图，
  * 否则裁剪弹窗既没底图、也取不到源，点了会没反应。
  */
 function reopenCrop() {
@@ -617,7 +625,6 @@ function cancelCrop() {
   imageData.value = null
   sourceCanvas.value = null
   errorMsg.value = ''
-  paramsDirty.value = false
 }
 
 // ==================== Core conversion ====================
@@ -629,6 +636,8 @@ async function convertImage() {
     return
   }
 
+  // 重生成会覆盖手动修改：记录转换前画布是否有内容，转换期间显示覆盖提示
+  hadEditsBeforeConvert.value = hasCanvasContent.value
   processing.value = true
   errorMsg.value = ''
 
@@ -650,7 +659,6 @@ async function convertImage() {
     result.value = conversionResult
     patternSnapshot.value = null
     selectedColorCode.value = null
-    paramsDirty.value = false
     undoStack.value = []
     ensureBrushColor()
     bumpRender()
@@ -660,6 +668,14 @@ async function convertImage() {
     errorMsg.value = t('tool.conversionFailed', { message: e instanceof Error ? e.message : 'Unknown error' })
   } finally {
     processing.value = false
+    // 转换结束后提示再停留 4s，确保「覆盖了手动修改」这件事被看见
+    if (hadEditsBeforeConvert.value) {
+      if (noticeTimer) clearTimeout(noticeTimer)
+      noticeTimer = setTimeout(() => {
+        hadEditsBeforeConvert.value = false
+        noticeTimer = null
+      }, 4000)
+    }
   }
 }
 
