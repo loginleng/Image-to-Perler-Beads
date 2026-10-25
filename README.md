@@ -1,61 +1,49 @@
 # Bead Studio
 
 <p>
-  <a href="./README.md">English</a> · <a href="./README.zh-CN.md">简体中文</a>
+  <a href="./README.en.md">English</a> · <a href="./README.md">简体中文</a>
 </p>
 
-**Turn any image into a bead / fuse-bead pattern — entirely in your browser.**
+**把任意图片变成拼豆图纸 —— 全程在浏览器里完成。**
 
-Drop an image, pick a paper width, get a numbered bead chart you can paint on the canvas,
-recolor cell by cell and export as a high-resolution PNG. No account, no upload, no backend:
-every pixel is processed locally with the Canvas API.
+拖入图片、选一个图纸宽度，得到一张带色号的拼豆图纸：可以在画布上逐格改色，最后导出高分辨率 PNG。不登录、不上传、无后端：每个像素都在本地用 Canvas API 处理。
 
-![Bead Studio demo](docs/demo.gif)
+![Bead Studio 演示](docs/demo.gif)
 
-<sub>Demo source used in the recording: [`docs/demo-source.png`](docs/demo-source.png) — a synthetic
-fractal generated with ffmpeg, so the repository stays free of third-party images.</sub>
+<sub>录制所用源图：[`docs/demo-source.png`](docs/demo-source.png) —— 用 ffmpeg 生成的合成分形图，仓库不包含任何第三方图片。</sub>
 
-## Try it
+## 在线体验
 
-| | Link | What it is |
+| | 链接 | 说明 |
 |---|---|---|
-| 🎨 | **https://perlerhome.com/pages/image-convert/index** | Live tool — open and start converting immediately, no login needed |
-| 🏠 | **https://perlerhome.com/intro** | The product & store-management system this tool comes from |
-| 🖥 | **https://loginleng.github.io/openBead/** | Static demo built from this repo (see [Static deployment](#static-deployment)) |
-| 📄 | https://perlerhome.com/features/image-to-perler | Longer write-up of the conversion pipeline |
+| 🎨 | **https://perlerhome.com/pages/image-convert/index** | 线上工具 —— 打开即用，无需登录 |
+| 🏠 | **https://perlerhome.com/intro** | 本工具来源的产品与门店管理系统 |
+| 🖥 | **https://loginleng.github.io/openBead/** | 由本仓库构建的静态演示（见[静态部署](#静态部署)） |
+| 📄 | https://perlerhome.com/features/image-to-perler | 转换链路的详细文章 |
 
-The first two links are the real product; this repository is the self-contained, trimmed
-version of the same engine, so you can read the code and run it locally.
+前两个是线上产品；本仓库是同一套引擎的自包含精简版，方便阅读代码与本地运行。
 
-## Features
+## 功能
 
-<img src="docs/screenshot.png" width="760" alt="Bead Studio editor screenshot" />
+<img src="docs/screenshot.png" width="760" alt="编辑器截图" />
 
-- **Image → pattern**: drag & drop / click to upload, crop with zoom & pan — the chart
-  regenerates automatically on every change (paper width, palette, style, advanced parameters).
-- **Sizes**: 52 / 78 / 104 columns; height follows the source aspect ratio.
-- **Palettes**: pluggable color sets with optional “variants” (sub-sets of a palette).
-- **Color matching**: Euclidean RGB, CIELAB (ΔE76) or **CIEDE2000**, switchable.
-- **Pattern styles**: `flat` / `detail` / `smooth` / `photo` — each one is a bundle of
-  sampling, denoise and palette-merging parameters (see `PATTERN_STYLES`).
-- **Advanced parameters**: every knob behind those presets is exposed — sampling mode, color
-  matching (CIEDE2000 / ΔE76 / RGB), clustering, denoise strength & gate, region/palette merge,
-  color cap, dark-spot cleanup, dithering (strength, color pool, gradient gate) and the four
-  edge switches (line art, diagonal lines, outline restore, feature restamp). Presets only
-  provide defaults; any edit is marked as “N changed” with one-click reset.
+- **图片 → 图纸**：拖拽 / 点击上传，裁剪支持缩放与平移 —— 任何改动（图纸宽度、色板、风格、高级参数）都会**自动重新生成**图纸。
+- **尺寸**：52 / 78 / 104 列；高度按原图宽高比自适应。
+- **色板**：可插拔的色板，支持「套装」（色板的子集）。
+- **配色算法**：RGB 欧氏距离 / Lab ΔE76 / **CIEDE2000**，可切换。
+- **图纸风格**：`扁平简洁` / `细节优先` / `平滑自然` / `照片写实` —— 每档是一组「采样 + 降噪 + 色号合并」参数的预设（见 `PATTERN_STYLES`）。
+- **高级参数**：预设背后的所有旋钮全部开放 —— 采样方式、配色匹配（CIEDE2000 / ΔE76 / RGB）、格内聚类、降噪强度与闸门、区域/色号合并、色号上限、暗点清理、抖动（强度、色号池、梯度选通）以及四个描边开关（线稿分层、斜线补充、轮廓还原、特征回贴）。预设只提供默认值；任何修改都会标成「已改 N 项」，可一键恢复。
 
-  <img src="docs/screenshot-advanced.png" width="760" alt="Advanced parameter panel" />
-- **Editing**: 1/3/5/7-cell brush, eraser, single-cell replace, whole-color replace, undo.
-- **Guides**: 10-cell guide grid, row/column coordinates with adjustable label step, zoom.
-- **Statistics**: bead count per color, total beads, estimated weight, finished size in cm.
-- **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
-  so codes stay readable). Example output: [`docs/export-sample.png`](docs/export-sample.png)
-  (52 columns, 2568×2732 px).
-- **No storage, no cookies**: nothing is written to `localStorage`; reload gives you a clean canvas.
+  <img src="docs/screenshot-advanced.png" width="760" alt="高级参数面板" />
+- **编辑**：1/3/5/7 格画笔、橡皮擦、单格替色、整色替换、撤销。
+- **辅助**：每 10 格参考网格、四周行列坐标（步长可调）、缩放。
+- **统计**：各色号颗数、总颗数、估重、成品尺寸（cm）。
+- **导出**：PNG 自带坐标与色号（导出格尺寸自动选择，保证色号可读）。示例输出：[`docs/export-sample.png`](docs/export-sample.png)（52 列，2568×2732 px）。
+- **不写任何存储**：不使用 `localStorage`，刷新即回到干净画布。
 
-## Quick start
+## 快速开始
 
-Requires **Node.js 20.19+** (or 22.12+). No other prerequisites.
+需要 **Node.js 20.19+**（或 22.12+），无其它前置条件。
 
 ```bash
 git clone https://github.com/loginleng/openBead.git bead-studio
@@ -64,130 +52,103 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-That is the whole setup — **no `.env`, no database, no API keys**. The editor page lives at
-`/tool/image-to-bead`; `/` redirects there.
+就这么多 —— **无需 `.env`、无数据库、无 API Key**。编辑器页面在 `/tool/image-to-bead`，`/` 会重定向过去。
 
-> `npm install` works with `pnpm`/`bun` too. A `.npmrc` pins `legacy-peer-deps=true` to dodge a
-> crash in npm 10.8's dependency resolver (it chokes on the optional peers of `vitest`); the
-> installed tree is identical either way.
+> `pnpm` / `bun` 也可以安装。仓库的 `.npmrc` 固定了 `legacy-peer-deps=true`，用于绕开 npm 10.8 依赖解析器的一个崩溃（它处理不了 vitest 的可选 peer）；两种方式装出的依赖树完全一致。
 
 ```bash
-npm test          # vitest: algorithm chain + unit tests
-npm run build     # production build (Nitro/node-server)
-npm run generate  # static build → .output/public (for GitHub Pages / any CDN)
+npm test          # vitest：算法主链 + 单元测试
+npm run build     # 生产构建（Nitro/node-server）
+npm run generate  # 静态构建 → .output/public（GitHub Pages / 任意 CDN）
 ```
 
-## Palettes: bring your own
+## 色板：替换成你自己的
 
-> The repository ships with a **fictional sample palette** (36 colors, invented brand and
-> color codes) used only to demo the algorithm.
-> For real production, replace `utils/palettes-data.ts` with your own color data — **this
-> project does not include any real brand's color chart.**
+> 仓库自带**虚构示例色板**（36 色、虚构品牌与色号），仅用于演示算法。
+> 实际生产请把 `utils/palettes-data.ts` 换成你自己的色板 —— **本项目不包含任何真实品牌的色号表。**
 
-How to swap it:
+替换步骤：
 
-1. Edit `scripts/palettes.input.json` (format documented at the top of `scripts/gen-palettes.mjs`) —
-   the only required fields per color are `code` and `hex`; `name` is optional and `price`
-   can stay `null`.
-2. Run `npm run gen:palettes`. It regenerates `utils/palettes-data.ts` (and derives `r/g/b`
-   from each `hex`, so the data can never drift).
-3. Or just hand-edit `utils/palettes-data.ts` — it is a plain TS constant.
+1. 编辑 `scripts/palettes.input.json`（格式见 `scripts/gen-palettes.mjs` 顶部说明）—— 每个颜色只需 `code` 与 `hex`；`name` 可选，`price` 保持 `null` 即可。
+2. 运行 `npm run gen:palettes`。它会重新生成 `utils/palettes-data.ts`（并从 `hex` 推导 `r/g/b`，数据不会漂移）。
+3. 或者直接手改 `utils/palettes-data.ts` —— 就是一个普通 TS 常量。
 
-Keep color **codes stable**: a pattern stores codes, not RGB, so renaming a code invalidates
-old charts.
+请保持色号**稳定**：图纸存的是色号而不是 RGB，改色号名会让旧图纸失效。
 
-## How the algorithm works
+## 算法是怎么工作的
 
-`utils/bead-algorithm.ts` is the core asset (~4k lines, zero network / DOM dependencies except
-one canvas helper). The pipeline in `convertImageToBeadPattern`:
+`utils/bead-algorithm.ts` 是核心资产（约 4k 行，除一个画布辅助外零网络 / DOM 依赖）。`convertImageToBeadPattern` 的流水线：
 
-1. **Fit** the source (progressive area-downscale above a pixel budget, so thin strokes survive).
-2. **Detect** small features (eyes/dots) and outline masks at source resolution.
-3. **Downscale per cell**: edge-aware weighted quantization (default), or area-average /
-   dominant / median sampling for the “smooth” and “photo” styles.
-4. **Quantize** each cell to the nearest palette color, with denoise, region merge and
-   whole-palette merge passes.
-5. **Optional dithering** with a gradient gate (only smooth gradients get dithered, hard edges don't).
-6. **Restamp** small features, symmetrize, restore outlines, clean dark spots, cap color count.
-7. **Count** beads per code and return `{ pattern, stats, totalBeads }`.
+1. **适配源图**（超过像素预算时分级面积降采样，细描边能活下来）。
+2. **检测**小特征（眼睛/圆点）与描边掩码（在源分辨率上做）。
+3. **逐格降采样**：默认边缘感知加权量化；「平滑 / 照片」档用面积平均 / 主色 / 中位数采样。
+4. **量化**每格到最近色板色，随后降噪、区域合并、全色板合并。
+5. **可选抖动**，带梯度选通（只有缓变渐变被抖动，硬边不动）。
+6. **回贴**小特征、对称校正、轮廓还原、暗点清理、色号数上限。
+7. **统计**每色号颗数，返回 `{ pattern, stats, totalBeads }`。
 
-`pattern` is a `string[][]` of color codes (`'TRANSPARENT'` for empty cells) — that is the
-only interchange format between the algorithm, the canvas renderer and the exporter.
+`pattern` 是色号组成的 `string[][]`（空格为 `'TRANSPARENT'`）—— 这是算法、画布渲染器与导出器之间唯一的交换格式。
 
-## Project structure
+## 项目结构
 
 ```
 bead-studio/
-├─ pages/tool/image-to-bead.vue   # editor page: state, conversion, wiring
+├─ pages/tool/image-to-bead.vue   # 编辑器页面：状态、转换、接线
 ├─ components/tool/
-│  ├─ Toolbar.vue                 # view toggles · tools · brush settings · undo
-│  ├─ BeadCanvas.vue              # canvas rendering + wheel zoom / pan / hover / painting
-│  ├─ ExportBar.vue               # export button (calls utils/bead-export)
-│  ├─ CropDialog.vue              # crop modal (draggable, resizable box)
-│  ├─ ColorDialog.vue             # color picker modal (brush / replace / replace-all)
-│  ├─ UploadDropzone.vue          # drop zone + preview (pan & zoom)
-│  ├─ SettingsPanel.vue           # one card: basics · palette · style · advanced (collapsed)
-│  ├─ AdvancedSettings.vue        # all pattern knobs, grouped, with preset-diff badge
-│  ├─ PatternStatsCard.vue        # bead count table
-│  └─ ColorPicker.vue             # color swatch grid
-├─ composables/useScrollLock.ts   # modal scroll lock
+│  ├─ Toolbar.vue                 # 视图开关 · 工具 · 笔刷设置 · 撤销
+│  ├─ BeadCanvas.vue              # 画布渲染 + 滚轮缩放 / 平移 / 悬停 / 涂画
+│  ├─ ExportBar.vue               # 导出按钮（调 utils/bead-export）
+│  ├─ CropDialog.vue              # 裁剪弹窗（可拖动、可缩放的选框）
+│  ├─ ColorDialog.vue             # 选色弹窗（画笔 / 替色 / 整色替换）
+│  ├─ UploadDropzone.vue          # 上传区 + 预览（缩放平移）
+│  ├─ SettingsPanel.vue           # 一张卡片：基础 · 色板 · 风格 · 高级（默认收起）
+│  ├─ AdvancedSettings.vue        # 全部图纸旋钮，分组展示，带预设差异徽标
+│  ├─ PatternStatsCard.vue        # 颗数统计表
+│  └─ ColorPicker.vue             # 色块网格
+├─ composables/useScrollLock.ts   # 弹窗滚动锁定
 ├─ utils/
-│  ├─ bead-algorithm.ts           # conversion + statistics + export sizing (core)
-│  ├─ bead-canvas.ts              # line widths that scale with the cell size + guide overlay
-│  ├─ bead-export.ts              # composes the exported PNG (chart + coords + stats block)
-│  ├─ pattern-params.ts           # presets → editable parameter set (diff / reset)
-│  └─ palettes-data.ts            # generated sample palette (replace me)
-├─ i18n/locales/{en,zh}.json      # UI copy (tool.* only)
+│  ├─ bead-algorithm.ts           # 转换 + 统计 + 导出尺寸（核心）
+│  ├─ bead-canvas.ts              # 随格子等比缩放的线宽 + 辅助网格/坐标
+│  ├─ bead-export.ts              # 组装导出 PNG（图纸 + 坐标 + 统计区）
+│  ├─ pattern-params.ts           # 预设 → 可编辑参数组（差异统计 / 重置）
+│  └─ palettes-data.ts            # 生成的示例色板（请替换）
+├─ i18n/locales/{en,zh}.json      # 界面文案（仅 tool.*）
 ├─ scripts/gen-palettes.mjs       # JSON → palettes-data.ts
-├─ scripts/palettes.input.json    # palette input example
-└─ tests/                         # vitest, node environment
+├─ scripts/palettes.input.json    # 色板输入示例
+└─ tests/                         # vitest，node 环境
 ```
 
-Data flows one way: `pattern` (a `string[][]` of color codes) lives in the page, and every
-component either reads it (`BeadCanvas`, `ExportBar`, `PatternStatsCard`) or emits an intent
-(`Toolbar` toggles, `BeadCanvas` paint/select events, `CropDialog` confirm). Only the page
-mutates the pattern and recomputes stats — no second source of truth.
+数据单向流动：`pattern`（色号组成的 `string[][]`）只存在页面里，组件要么读它（`BeadCanvas`、`ExportBar`、`PatternStatsCard`），要么发意图（`Toolbar` 开关、`BeadCanvas` 的涂画/选色事件、`CropDialog` 确认）。只有页面会改 pattern、重算统计 —— 不存在第二份数据源。
 
-## Tests
+## 测试
 
 ```bash
 npm test
 ```
 
-Coverage focuses on the pieces that are easy to break silently:
+覆盖重点是「容易被悄悄改坏」的部分：
 
-- `tests/algorithm-chain.test.ts` — downscale → quantize → dither → statistics → export cell
-  sizing invariants (all four pattern styles, determinism, `TRANSPARENT` handling, color cap).
-- `tests/bead-export.test.ts` — exported stats-block layout (row/column math, compression cap).
-- `tests/pattern-params.test.ts` — preset → parameter flattening (per-style values, diff count).
-- `tests/image-to-bead.test.ts`, `tests/helpers/color-utils.test.ts` — helper functions
-  (denoise, dominant color, nearest color).
+- `tests/algorithm-chain.test.ts` — 降采样 → 量化 → 抖动 → 统计 → 导出尺寸的不变量（四档风格、确定性、`TRANSPARENT` 处理、色号上限）。
+- `tests/bead-export.test.ts` — 导出统计区排版（行列计算、压缩上限）。
+- `tests/pattern-params.test.ts` — 预设 → 参数摊平（各档取值、差异计数）。
+- `tests/image-to-bead.test.ts`、`tests/helpers/color-utils.test.ts` — 辅助函数（降噪、主色提取、最近色）。
 
-`createBeadCanvas` (DOM `<canvas>`) is not unit-tested; it needs a real canvas context.
+`createBeadCanvas`（DOM `<canvas>`）没有单元测试 —— 它需要真实的 canvas 上下文。
 
-## Static deployment
+## 静态部署
 
-`npm run generate` writes `.output/public`. For GitHub Pages under a project path, build with
-the right base URL:
+`npm run generate` 输出 `.output/public`。部署到 GitHub Pages 项目路径时，需带正确的 baseURL 构建：
 
 ```bash
 NUXT_APP_BASE_URL=/openBead/ npm run generate
 ```
 
-`.github/workflows/deploy-demo.yml` does exactly that (the repo name is filled in
-automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
+`.github/workflows/deploy-demo.yml` 已经这么做了（仓库名自动填入）。只需在 **Settings → Pages → Source 选 GitHub Actions** 一次。
 
-## Notes
+## 说明
 
-- Everything runs on the main thread: for very large charts (100+ columns) generation takes a
-  moment on low-end phones, but nothing blocks the UI permanently.
-- This project is a trimmed fork of our internal editor; commerce, 3D, accounts and the
-  server/database layer were removed on purpose, and all real brand palettes were replaced
-  with the fictional sample set.
-
-## 中文文档
-
-简体中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
+- 全部计算跑在主线程：超大图纸（100+ 列）在低端手机上生成会花一点时间，但不会永久卡死界面。
+- 本项目是我们内部编辑器的精简版：电商、3D、账号、服务端/数据库层都是有意移除的，真实品牌色板全部换成了虚构示例色板。
 
 ## License
 
