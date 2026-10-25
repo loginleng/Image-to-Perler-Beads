@@ -1,5 +1,9 @@
 # Bead Studio
 
+<p>
+  <a href="./README.md">English</a> · <a href="./README.zh-CN.md">简体中文</a>
+</p>
+
 **Turn any image into a bead / fuse-bead pattern — entirely in your browser.**
 
 Drop an image, pick a paper width, get a numbered bead chart you can paint on the canvas,
@@ -167,7 +171,7 @@ Coverage focuses on the pieces that are easy to break silently:
 the right base URL:
 
 ```bash
-NUXT_APP_BASE_URL=/bead-studio/ npm run generate
+NUXT_APP_BASE_URL=/openBead/ npm run generate
 ```
 
 `.github/workflows/deploy-demo.yml` does exactly that (the repo name is filled in
@@ -181,18 +185,9 @@ automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
   server/database layer were removed on purpose, and all real brand palettes were replaced
   with the fictional sample set.
 
-## 中文简介
+## 中文文档
 
-把一个图片转成拼豆图纸的网页编辑器：拖图 → 裁剪 → 自动出图纸 → 逐格改色 → 导出 PNG。
-**不登录、不上传、不联网**，算法全部在浏览器里跑（`utils/bead-algorithm.ts` 是核心）。
-
-```bash
-npm install && npm run dev   # 打开 http://localhost:3000 即可用，无需任何配置
-```
-
-仓库自带的是**虚拟示例色板**（36 色，虚构品牌与色号），仅用于演示算法。实际生产请替换
-`utils/palettes-data.ts`（或改 `scripts/palettes.input.json` 后执行 `npm run gen:palettes`）——
-本项目不包含任何真实品牌的色号表。
+简体中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
 
 ## License
 
