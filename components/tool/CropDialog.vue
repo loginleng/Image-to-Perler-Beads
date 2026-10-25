@@ -66,12 +66,6 @@
         <p class="text-xs text-gray-500 mt-1">{{ $t('tool.cropScaleHint') }}</p>
       </div>
 
-      <!-- 覆盖警告：确认后会直接用新图重出图纸，画布上的手动修改会被替换 -->
-      <div v-if="willOverwrite" class="mb-4 p-3 rounded-lg bg-amber-50 border-2 border-amber-300 text-xs text-amber-800 flex items-start gap-2">
-        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-        <span>{{ $t('tool.cropOverwrite') }}</span>
-      </div>
-
       <div class="flex justify-end gap-3">
         <button @click="emit('cancel')" class="modern-btn modern-btn-secondary modern-btn-sm">{{ $t('tool.cropCancel') }}</button>
         <button @click="confirm" class="modern-btn modern-btn-primary modern-btn-sm">{{ $t('tool.cropConfirm') }}</button>
@@ -89,8 +83,6 @@ const props = defineProps<{
   source: HTMLCanvasElement | null
   /** 原图 URL（弹窗里显示） */
   imageUrl: string
-  /** 画布上已有内容：确认会覆盖手动修改，弹窗里要给醒目警告 */
-  willOverwrite?: boolean
 }>()
 
 const emit = defineEmits<{

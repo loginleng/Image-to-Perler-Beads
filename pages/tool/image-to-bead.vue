@@ -106,12 +106,6 @@
             @undo="undoPaint"
           />
 
-          <!-- 覆盖提示：重新生成会用图片结果替换画布上的手动修改 -->
-          <div v-if="overwriteNotice" class="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-300 text-xs text-amber-800 flex items-center gap-2">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-            {{ $t('tool.overwriteNotice') }}
-          </div>
-
           <!-- Error message -->
           <div v-if="errorMsg" class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -199,12 +193,11 @@
       @close="closeColorPicker"
     />
 
-    <!-- 裁剪弹窗：确认即重生成，画布已有内容时给出覆盖警告 -->
+    <!-- 裁剪弹窗：确认即重生成 -->
     <CropDialog
       :open="showCropModal"
       :source="sourceCanvas"
       :image-url="previewUrl"
-      :will-overwrite="hasCanvasContent"
       @confirm="onCropConfirm"
       @cancel="cancelCrop"
     />
@@ -337,12 +330,6 @@ const hasCanvasContent = computed(() => {
   return false
 })
 
-// 重生成会覆盖画布上的手动修改：提示在转换期间出现，并在结束后再停留几秒
-// （52 格的转换常常一闪而过，只挂 processing 的话用户根本看不到）。
-const hadEditsBeforeConvert = ref(false)
-const overwriteNotice = computed(() => hadEditsBeforeConvert.value)
-let noticeTimer: ReturnType<typeof setTimeout> | null = null
-
 /** 交给画布的工具态：三个开关互斥，统一折算成一个值 */
 const canvasTool = computed<'none' | 'brush' | 'eraser' | 'replace'>(() => {
   if (brushEnabled.value) return 'brush'
@@ -435,13 +422,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (paintRaf) cancelAnimationFrame(paintRaf)
   if (autoConvertTimer) clearTimeout(autoConvertTimer)
-  if (noticeTimer) clearTimeout(noticeTimer)
 })
 
 // ==================== 自动重生成 ====================
 // 只要有原图，任何影响量化的改动（宽度 / 色板 / 风格 / 高级参数）都直接重出图纸，
 // 不再经过「生成图纸」按钮；防抖把连续拖动滑块合并成一次转换。
-// 注意：重生成会覆盖画布上的手动修改 —— 转换期间有醒目的覆盖提示（见模板）。
 const AUTO_CONVERT_DELAY = 500
 let autoConvertTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -636,8 +621,6 @@ async function convertImage() {
     return
   }
 
-  // 重生成会覆盖手动修改：记录转换前画布是否有内容，转换期间显示覆盖提示
-  hadEditsBeforeConvert.value = hasCanvasContent.value
   processing.value = true
   errorMsg.value = ''
 
@@ -668,14 +651,6 @@ async function convertImage() {
     errorMsg.value = t('tool.conversionFailed', { message: e instanceof Error ? e.message : 'Unknown error' })
   } finally {
     processing.value = false
-    // 转换结束后提示再停留 4s，确保「覆盖了手动修改」这件事被看见
-    if (hadEditsBeforeConvert.value) {
-      if (noticeTimer) clearTimeout(noticeTimer)
-      noticeTimer = setTimeout(() => {
-        hadEditsBeforeConvert.value = false
-        noticeTimer = null
-      }, 4000)
-    }
   }
 }
 
