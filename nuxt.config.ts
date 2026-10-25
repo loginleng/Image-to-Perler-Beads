@@ -14,7 +14,6 @@ export default defineNuxtConfig({
         // 字体已自托管（public/fonts/，@font-face 见 assets/css/main.css），
         // 不依赖任何第三方 CDN：无第三方请求、无 GDPR 风险、国内可访问。
         { rel: 'preload', href: '/fonts/inter-latin.woff2', as: 'font', type: 'font/woff2', crossorigin: '' },
-        { rel: 'preload', href: '/fonts/press-start-2p-latin.woff2', as: 'font', type: 'font/woff2', crossorigin: '' },
       ],
     },
   },

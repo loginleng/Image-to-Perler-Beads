@@ -119,13 +119,6 @@
             {{ errorMsg }}
           </div>
 
-          <!-- 本地草稿恢复提示（刷新 / 重新打开页面后创作内容不遗失） -->
-          <div v-if="draftRestored" class="mb-4 p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-center gap-2">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span class="flex-1">{{ $t('tool.draftRestored') }}</span>
-            <button @click="discardDraft" class="text-xs underline shrink-0">{{ $t('tool.discard') }}</button>
-          </div>
-
           <BeadCanvas
             ref="beadCanvasRef"
             :pattern="result?.pattern ?? null"
@@ -161,8 +154,8 @@
           />
         </div>
 
-        <!-- Color Statistics -->
-        <div v-if="result && !processing" class="modern-card p-6">
+        <!-- Color Statistics：空白画布（没有可拼珠的格子）时不显示 -->
+        <div v-if="result && hasCanvasContent && !processing" class="modern-card p-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-gray-900">{{ $t('tool.colorStats') }}</h3>
             <div class="flex items-center gap-4 text-sm text-gray-600">
@@ -221,21 +214,14 @@
 <script setup lang="ts">
 import { ALL_BRAND_PALETTES } from '~/utils/palettes-data'
 import { PATTERN_STYLES, type BeadStyle, type PatternStyleKey } from '~/utils/bead-algorithm'
-import type { BeadColor, PaletteVariant } from '~/types'
+import type { BeadColor } from '~/types'
 
 const { t } = useI18n()
-
-// ==================== 草稿持久化（刷新 / 重新打开页面后创作内容不遗失） ====================
-const DRAFT_KEY = 'bead-studio-draft'
-const draftRestored = ref(false)
-let restoringDraft = false
-let hadDraftBeforeUpload = false
 
 // ==================== State ====================
 const beadCanvasRef = ref<{ invalidate: () => void; resetView: () => void } | null>(null)
 const previewUrl = ref<string>('')
 const imageData = ref<ImageData | null>(null)
-const imageFile = ref<File | null>(null)
 const result = ref<{ pattern: string[][]; stats: any[]; totalBeads: number } | null>(null)
 const processing = ref(false)
 const errorMsg = ref<string>('')
@@ -360,8 +346,6 @@ const currentVariants = computed(() => currentBrandPalette.value.variants || [])
 
 // Initialize/reset selectedVariantId when palette changes
 watch(selectedPaletteId, () => {
-  // 草稿恢复期间不重置变体（恢复逻辑会按草稿设定完整状态）
-  if (restoringDraft) return
   const variants = currentVariants.value
   selectedVariantId.value = variants.length > 0 ? variants[0].id : ''
 }, { immediate: true })
@@ -412,20 +396,9 @@ const physicalSizeCm = computed(() => {
 })
 
 // ==================== 重绘调度 ====================
-let renderTimer: ReturnType<typeof setTimeout> | null = null
-
-/** 立即重绘（图案内容已变） */
+/** 通知画布重绘：图案内容变了就自增，BeadCanvas 据此让渲染缓存失效 */
 function bumpRender() {
   renderToken.value++
-}
-
-/** 防抖重绘（切换风格/辅助线这类不紧急的变化） */
-function scheduleRender() {
-  if (renderTimer) clearTimeout(renderTimer)
-  renderTimer = setTimeout(() => {
-    renderTimer = null
-    bumpRender()
-  }, 100)
 }
 
 // ==================== Crop ====================
@@ -437,10 +410,8 @@ const croppedPreviewUrl = ref('')
 
 // ==================== Lifecycle ====================
 onMounted(() => {
-  // 先给一张空白画布：用户不上传图片也能直接在画布上作画
+  // 给一张空白画布：用户不上传图片也能直接在画布上作画
   initBlankCanvas()
-  // 恢复上一次留在本地的草稿（图案 + 参数），没有草稿时保持空白画布
-  loadDraft()
   // 等色板相关的 watch 落定，画笔颜色才能取到当前套装的有效色号
   nextTick(() => {
     ensureBrushColor()
@@ -449,38 +420,12 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (renderTimer) clearTimeout(renderTimer)
   if (paintRaf) cancelAnimationFrame(paintRaf)
 })
-
-// 自动选择能覆盖图案全部色号的最小套装（草稿恢复时用）
-function pickVariantForPattern(pattern: string[][], variants: PaletteVariant[]): string {
-  if (!variants || variants.length === 0) return ''
-  const used = new Set<string>()
-  for (const row of pattern) {
-    for (const code of row) {
-      if (code && code !== 'TRANSPARENT') used.add(code)
-    }
-  }
-  if (used.size === 0) return variants[0].id
-  const covering = variants.filter(v => {
-    if (!v.codes || v.codes.length === 0) return false
-    const set = new Set(v.codes)
-    for (const code of used) if (!set.has(code)) return false
-    return true
-  })
-  if (covering.length > 0) {
-    covering.sort((a, b) => (a.colorCount ?? (a.codes?.length ?? 0)) - (b.colorCount ?? (b.codes?.length ?? 0)))
-    return covering[0].id
-  }
-  const sorted = [...variants].sort((a, b) => (b.colorCount ?? (b.codes?.length ?? 0)) - (a.colorCount ?? (a.codes?.length ?? 0)))
-  return sorted[0].id
-}
 
 // 影响转换的参数：不再自动重新生成，只标记「待生成」，由用户点「生成图纸」
 // 修改图纸大小：有原图时等生成；没有原图时，空白画布直接按新宽度重建
 watch(selectedGridSize, () => {
-  if (restoringDraft) return
   if (imageData.value) {
     paramsDirty.value = true
     return
@@ -491,7 +436,6 @@ watch(selectedGridSize, () => {
 
 // 切换色板/套餐：当前选中色不在新套餐内时重置；色板变化先重绘，真正重新量化仍要点生成
 watch([selectedPaletteId, selectedVariantId], () => {
-  if (restoringDraft) return
   if (selectedColorCode.value && !currentBrandColors.value.some(c => c.code === selectedColorCode.value)) {
     selectedColorCode.value = null
     patternSnapshot.value = null
@@ -503,7 +447,6 @@ watch([selectedPaletteId, selectedVariantId], () => {
 
 // 切换图纸风格（降采样 + 颜色距离 + 降噪）：必须点「生成图纸」才重新量化
 watch(patternStyle, () => {
-  if (restoringDraft) return
   if (imageData.value) paramsDirty.value = true
 })
 
@@ -537,7 +480,7 @@ function resetToBlankCanvas() {
   nextTick(() => bumpRender())
 }
 
-/** 页面初始化：没有草稿 / 编辑项目时，先给一张可绘制的空白画布 */
+/** 页面初始化：先给一张可绘制的空白画布 */
 function initBlankCanvas() {
   if (result.value) return
   resetToBlankCanvas()
@@ -545,25 +488,21 @@ function initBlankCanvas() {
 
 /**
  * 清空画布 + 上传的图片 + 预览图，回到一张新的空白画布。
- * confirm=true 时二次确认（预览区的 × 与「清空画布」按钮）；丢弃草稿时不确认。
+ * 有内容时二次确认（预览图的 × 与「清空画布」按钮共用）。
  */
-function doClearCanvas(confirm: boolean) {
+function clearCanvas() {
   const hasAnything = !!imageData.value || !!previewUrl.value || hasCanvasContent.value
-  if (confirm && hasAnything && !window.confirm(t('tool.clearCanvasConfirm'))) return
+  if (hasAnything && !window.confirm(t('tool.clearCanvasConfirm'))) return
 
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   if (croppedPreviewUrl.value) URL.revokeObjectURL(croppedPreviewUrl.value)
   previewUrl.value = ''
   croppedPreviewUrl.value = ''
   imageData.value = null
-  imageFile.value = null
   sourceCanvas.value = null
   errorMsg.value = ''
   showCropModal.value = false
   showColorPicker.value = false
-  hadDraftBeforeUpload = false
-  draftRestored.value = false
-  clearDraft()
   // 清空后的空白画布固定回到 100% 缩放与左上角，避免沿用旧缩放/滚动位置产生“缩放后的效果”
   zoomLevel.value = 100
   resetToBlankCanvas()
@@ -571,11 +510,6 @@ function doClearCanvas(confirm: boolean) {
     bumpRender()
     beadCanvasRef.value?.resetView()
   })
-}
-
-/** 工具栏「清空画布」按钮 / 预览图 × */
-function clearCanvas() {
-  doClearCanvas(true)
 }
 
 /** 手动生成：上传 / 裁剪图片后由用户点击，不再自动转换 */
@@ -597,10 +531,7 @@ function loadImage(file: File) {
   }
 
   errorMsg.value = ''
-  // 记录上传前是否已恢复草稿：取消裁剪时可恢复，避免内容遗失
-  hadDraftBeforeUpload = draftRestored.value
   cropReopened = false
-  imageFile.value = file
   // Revoke the previous object URL to avoid leaking memory on repeated uploads
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value)
@@ -667,15 +598,9 @@ function cancelCrop() {
   previewUrl.value = ''
   croppedPreviewUrl.value = ''
   imageData.value = null
-  imageFile.value = null
   sourceCanvas.value = null
   errorMsg.value = ''
   paramsDirty.value = false
-  // 上传前若已恢复草稿，取消裁剪后恢复草稿，避免创作内容被清空
-  if (hadDraftBeforeUpload) {
-    hadDraftBeforeUpload = false
-    loadDraft()
-  }
 }
 
 // ==================== Core conversion ====================
@@ -714,9 +639,6 @@ async function convertImage() {
     ensureBrushColor()
     bumpRender()
     await nextTick()
-    saveDraft()
-    // 完成新一次转换后，不再显示“草稿已恢复”提示
-    draftRestored.value = false
   } catch (e) {
     console.error('Conversion failed:', e)
     errorMsg.value = t('tool.conversionFailed', { message: e instanceof Error ? e.message : 'Unknown error' })
@@ -727,7 +649,7 @@ async function convertImage() {
 
 // ==================== Painting ====================
 
-/** 画布回传落笔结果：改 pattern → 重算统计 → 重绘 → 存草稿（一帧合并一次） */
+/** 画布回传落笔结果：改 pattern → 重算统计 → 重绘（一帧合并一次） */
 function onPaint(payload: { cells: { x: number; y: number }[]; code: string }) {
   const pattern = result.value?.pattern
   if (!pattern) return
@@ -743,7 +665,6 @@ function onPaint(payload: { cells: { x: number; y: number }[]; code: string }) {
     paintRaf = 0
     recalculateStats()
     bumpRender()
-    saveDraft()
   })
 }
 
@@ -760,7 +681,6 @@ function undoPaint() {
   result.value.pattern = snapshot
   recalculateStats()
   bumpRender()
-  saveDraft()
 }
 
 function recalculateStats() {
@@ -903,7 +823,6 @@ function replaceColor(oldCode: string, newCode: string) {
   bumpRender()
   // 选中色更新为新色，选色板保持展开，可继续替换或重置
   selectedColorCode.value = newCode
-  saveDraft()
 }
 
 // 重置：恢复替换前的原始图案
@@ -914,79 +833,6 @@ function resetColor() {
   selectedColorCode.value = null
   recalculateStats()
   bumpRender()
-  saveDraft()
-}
-
-// ==================== 草稿持久化（刷新 / 重新打开页面后创作内容不遗失） ====================
-// 保存草稿：图案 + 当前工具设置，存入 localStorage（纯本地，不联网）
-function saveDraft() {
-  if (!result.value || !currentBrandPalette.value) return
-  try {
-    const draft = {
-      pattern: result.value.pattern,
-      stats: result.value.stats,
-      totalBeads: result.value.totalBeads,
-      paletteId: selectedPaletteId.value,
-      variantId: selectedVariantId.value,
-      gridSize: selectedGridSize.value,
-      beadSize: beadSize.value,
-      style: selectedStyle.value,
-      savedAt: Date.now(),
-    }
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  } catch {
-    // localStorage 不可用时忽略（如隐私模式）
-  }
-}
-
-function clearDraft() {
-  try {
-    localStorage.removeItem(DRAFT_KEY)
-  } catch {
-    // ignore
-  }
-  draftRestored.value = false
-}
-
-// 页面加载时恢复上一次的草稿
-function loadDraft() {
-  let raw = ''
-  try {
-    raw = localStorage.getItem(DRAFT_KEY) || ''
-  } catch {
-    return
-  }
-  if (!raw) return
-  let draft: any
-  try {
-    draft = JSON.parse(raw)
-  } catch {
-    return
-  }
-  if (!draft?.pattern || !Array.isArray(draft.pattern) || draft.pattern.length === 0) return
-
-  restoringDraft = true
-  selectedPaletteId.value = draft.paletteId || selectedPaletteId.value
-  // 恢复套装；旧草稿未保存该字段时自动选择能覆盖图案全部色号的最小套装
-  selectedVariantId.value = draft.variantId || pickVariantForPattern(draft.pattern, currentVariants.value)
-  selectedGridSize.value = draft.gridSize || '52'
-  beadSize.value = draft.beadSize === '2.6MM' ? '2.6MM' : '5MM'
-  selectedStyle.value = draft.style || 'grid-square'
-  result.value = {
-    pattern: draft.pattern,
-    stats: draft.stats || [],
-    totalBeads: draft.totalBeads || 0,
-  }
-  restoringDraft = false
-  draftRestored.value = true
-  ensureBrushColor()
-  nextTick(() => bumpRender())
-}
-
-// 丢弃草稿：清空上传流程与编辑器状态，回到一张干净的空白画布
-// （用户已经点了「丢弃」，不再二次确认）
-function discardDraft() {
-  doClearCanvas(false)
 }
 
 // 任一弹窗打开时锁定整页滚动，避免移动端弹窗内部滚动穿透到浏览器整页

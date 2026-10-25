@@ -39,7 +39,7 @@ version of the same engine, so you can read the code and run it locally.
 - **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
   so codes stay readable). Example output: [`docs/export-sample.png`](docs/export-sample.png)
   (52 columns, 2568×2732 px).
-- **Local draft**: your pattern and settings are restored from `localStorage` on reload.
+- **No storage, no cookies**: nothing is written to `localStorage`; reload gives you a clean canvas.
 
 ## Quick start
 
@@ -106,7 +106,7 @@ only interchange format between the algorithm, the canvas renderer and the expor
 
 ```
 bead-studio/
-├─ pages/tool/image-to-bead.vue   # editor page: state, conversion, draft, wiring
+├─ pages/tool/image-to-bead.vue   # editor page: state, conversion, wiring
 ├─ components/tool/
 │  ├─ Toolbar.vue                 # view toggles · tools · brush settings · undo
 │  ├─ BeadCanvas.vue              # canvas rendering + wheel zoom / pan / hover / painting
@@ -122,9 +122,7 @@ bead-studio/
 │  ├─ bead-algorithm.ts           # conversion + statistics + export sizing (core)
 │  ├─ bead-canvas.ts              # line widths that scale with the cell size + guide overlay
 │  ├─ bead-export.ts              # composes the exported PNG (chart + coords + stats block)
-│  ├─ palettes-data.ts            # generated sample palette (replace me)
-│  ├─ pattern-codec.ts            # compact pattern (de)serialization
-│  └─ image-utils.ts              # ImageData ⇄ data URL helpers
+│  └─ palettes-data.ts            # generated sample palette (replace me)
 ├─ i18n/locales/{en,zh}.json      # UI copy (tool.* only)
 ├─ scripts/gen-palettes.mjs       # JSON → palettes-data.ts
 ├─ scripts/palettes.input.json    # palette input example
@@ -134,7 +132,7 @@ bead-studio/
 Data flows one way: `pattern` (a `string[][]` of color codes) lives in the page, and every
 component either reads it (`BeadCanvas`, `ExportBar`, `PatternStatsCard`) or emits an intent
 (`Toolbar` toggles, `BeadCanvas` paint/select events, `CropDialog` confirm). Only the page
-mutates the pattern, recomputes stats and writes the draft — no second source of truth.
+mutates the pattern and recomputes stats — no second source of truth.
 
 ## Tests
 
@@ -147,8 +145,8 @@ Coverage focuses on the pieces that are easy to break silently:
 - `tests/algorithm-chain.test.ts` — downscale → quantize → dither → statistics → export cell
   sizing invariants (all four pattern styles, determinism, `TRANSPARENT` handling, color cap).
 - `tests/bead-export.test.ts` — exported stats-block layout (row/column math, compression cap).
-- `tests/image-to-bead.test.ts`, `tests/pattern-codec.test.ts`, `tests/helpers/color-utils.test.ts`
-  — helper functions (denoise, dominant color, nearest color, codec round-trip).
+- `tests/image-to-bead.test.ts`, `tests/helpers/color-utils.test.ts` — helper functions
+  (denoise, dominant color, nearest color).
 
 `createBeadCanvas` (DOM `<canvas>`) is not unit-tested; it needs a real canvas context.
 

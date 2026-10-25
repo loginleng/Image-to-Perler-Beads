@@ -26,8 +26,6 @@
     "cropRatio": "Aspect Ratio",
     "cropScale": "Image Size",
     "cropScaleHint": "Parts beyond the original image become transparent padding (no beads)",
-    "discard": "Discard",
-    "draftRestored": "Your last draft was restored from this browser (stored locally, never uploaded).",
     "dragDrop": "Drag & drop your image here, or click to browse",
     "eraser": "Eraser",
     "estimatedWeight": "Est. Weight",
