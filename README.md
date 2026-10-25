@@ -17,7 +17,7 @@ fractal generated with ffmpeg, so the repository stays free of third-party image
 |---|---|---|
 | 🎨 | **https://perlerhome.com/pages/image-convert/index** | Live tool — open and start converting immediately, no login needed |
 | 🏠 | **https://perlerhome.com/intro** | The product & store-management system this tool comes from |
-| 🖥 | `https://<your-user>.github.io/bead-studio/` | Static demo built from this repo (see [Static deployment](#static-deployment); replace the placeholder after the first deploy) |
+| 🖥 | **https://loginleng.github.io/openBead/** | Static demo built from this repo (see [Static deployment](#static-deployment)) |
 | 📄 | https://perlerhome.com/features/image-to-perler | Longer write-up of the conversion pipeline |
 
 The first two links are the real product; this repository is the self-contained, trimmed
@@ -54,7 +54,7 @@ version of the same engine, so you can read the code and run it locally.
 Requires **Node.js 20.19+** (or 22.12+). No other prerequisites.
 
 ```bash
-git clone <this-repo> bead-studio
+git clone https://github.com/loginleng/openBead.git bead-studio
 cd bead-studio
 npm install
 npm run dev      # http://localhost:3000
