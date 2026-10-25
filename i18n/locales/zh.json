@@ -1,5 +1,6 @@
 {
   "tool": {
+    "beadUnit": "颗",
     "beadSize": "网格大小",
     "beadStyle": "珠子样式",
     "brush": "画笔",
@@ -26,7 +27,7 @@
     "cropScale": "图片大小",
     "cropScaleHint": "超过原图的部分为透明留白，不会生成拼豆",
     "discard": "丢弃",
-    "draftRestored": "已恢复您的创作草稿，请点击「保存设计」手动保存。",
+    "draftRestored": "已从本机恢复上次的创作草稿（只保存在这个浏览器里）。",
     "dragDrop": "将图片拖拽到此处，或点击浏览",
     "eraser": "橡皮擦",
     "estimatedWeight": "预估重量",

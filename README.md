@@ -106,12 +106,22 @@ only interchange format between the algorithm, the canvas renderer and the expor
 
 ```
 bead-studio/
-├─ pages/tool/image-to-bead.vue   # the editor (single page, all interactions)
-├─ components/tool/               # upload / settings / stats / color pickers
+├─ pages/tool/image-to-bead.vue   # editor page: state, conversion, draft, wiring
+├─ components/tool/
+│  ├─ Toolbar.vue                 # view toggles · tools · brush settings · undo
+│  ├─ BeadCanvas.vue              # canvas rendering + wheel zoom / pan / hover / painting
+│  ├─ ExportBar.vue               # export button (calls utils/bead-export)
+│  ├─ CropDialog.vue              # crop modal (draggable, resizable box)
+│  ├─ ColorDialog.vue             # color picker modal (brush / replace / replace-all)
+│  ├─ UploadDropzone.vue          # drop zone + preview (pan & zoom)
+│  ├─ SettingsPanel.vue           # paper size · bead size · palette · style
+│  ├─ PatternStatsCard.vue        # bead count table
+│  └─ ColorPicker.vue             # color swatch grid
 ├─ composables/useScrollLock.ts   # modal scroll lock
 ├─ utils/
 │  ├─ bead-algorithm.ts           # conversion + statistics + export sizing (core)
-│  ├─ bead-canvas.ts              # line widths that scale with the cell size
+│  ├─ bead-canvas.ts              # line widths that scale with the cell size + guide overlay
+│  ├─ bead-export.ts              # composes the exported PNG (chart + coords + stats block)
 │  ├─ palettes-data.ts            # generated sample palette (replace me)
 │  ├─ pattern-codec.ts            # compact pattern (de)serialization
 │  └─ image-utils.ts              # ImageData ⇄ data URL helpers
@@ -120,6 +130,11 @@ bead-studio/
 ├─ scripts/palettes.input.json    # palette input example
 └─ tests/                         # vitest, node environment
 ```
+
+Data flows one way: `pattern` (a `string[][]` of color codes) lives in the page, and every
+component either reads it (`BeadCanvas`, `ExportBar`, `PatternStatsCard`) or emits an intent
+(`Toolbar` toggles, `BeadCanvas` paint/select events, `CropDialog` confirm). Only the page
+mutates the pattern, recomputes stats and writes the draft — no second source of truth.
 
 ## Tests
 
@@ -131,6 +146,7 @@ Coverage focuses on the pieces that are easy to break silently:
 
 - `tests/algorithm-chain.test.ts` — downscale → quantize → dither → statistics → export cell
   sizing invariants (all four pattern styles, determinism, `TRANSPARENT` handling, color cap).
+- `tests/bead-export.test.ts` — exported stats-block layout (row/column math, compression cap).
 - `tests/image-to-bead.test.ts`, `tests/pattern-codec.test.ts`, `tests/helpers/color-utils.test.ts`
   — helper functions (denoise, dominant color, nearest color, codec round-trip).
 

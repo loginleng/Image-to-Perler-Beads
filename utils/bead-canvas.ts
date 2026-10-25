@@ -56,3 +56,77 @@ export function calcBeadLineMetrics(cellSize: number, dpr: number): BeadLineMetr
     gridLineWidth: Math.max(hairline, Math.min(1, safeCell * BEAD_GRID_LINE_RATIO))
   }
 }
+
+/** 坐标留白宽度（px）：显示坐标时，图纸四周留给行列数字的空间 */
+export const GUIDE_MARGIN = 36
+
+export interface GuideOverlayOptions {
+  cols: number
+  rows: number
+  /** 单格尺寸（px） */
+  cellSize: number
+  /** 整张画布宽高（含四周留白） */
+  canvasW: number
+  canvasH: number
+  /** 四周留白宽度；0 = 不显示坐标 */
+  guideMargin: number
+  showGrid: boolean
+  showCoords: boolean
+  coordFontSize?: number
+  /** 每 N 格标一个坐标数字（辅助网格线固定每 10 格，不受此影响） */
+  labelStep?: number
+}
+
+/**
+ * 在画布上叠加「每 10 格辅助网格 + 四周行列坐标」。
+ * 预览与导出共用同一份实现，避免两边标尺对不上。
+ */
+export function drawGuideOverlay(ctx: CanvasRenderingContext2D, o: GuideOverlayOptions) {
+  const {
+    cols, rows, cellSize, canvasW, canvasH, guideMargin,
+    showGrid, showCoords, coordFontSize = 12, labelStep = 10
+  } = o
+
+  // 辅助网格：每 10 格一条深色线（只画在珠子区域内，避免与坐标留白区的数字重叠）
+  if (showGrid) {
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)'
+    // 线宽按格子等比缩放：写死 1px 时，缩到 25% 会让线比格子还粗
+    ctx.lineWidth = calcBeadLineMetrics(cellSize, 1).gridLineWidth
+    for (let i = 10; i <= cols; i += 10) {
+      const x = guideMargin + i * cellSize
+      ctx.beginPath()
+      ctx.moveTo(x, guideMargin)
+      ctx.lineTo(x, canvasH - guideMargin)
+      ctx.stroke()
+    }
+    for (let j = 10; j <= rows; j += 10) {
+      const y = guideMargin + j * cellSize
+      ctx.beginPath()
+      ctx.moveTo(guideMargin, y)
+      ctx.lineTo(canvasW - guideMargin, y)
+      ctx.stroke()
+    }
+  }
+
+  // 坐标：四面标注，起点标 1，此后每个 labelStep 格边界标一次
+  if (showCoords) {
+    ctx.fillStyle = 'rgba(0,0,0,0.65)'
+    ctx.font = `${coordFontSize}px monospace`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    // 列坐标：顶部 & 底部
+    for (let pos = 0; pos <= cols; pos += labelStep) {
+      const label = pos === 0 ? '1' : String(pos)
+      const x = guideMargin + pos * cellSize
+      ctx.fillText(label, x, guideMargin / 2)
+      ctx.fillText(label, x, canvasH - guideMargin / 2)
+    }
+    // 行坐标：左侧 & 右侧
+    for (let pos = 0; pos <= rows; pos += labelStep) {
+      const label = pos === 0 ? '1' : String(pos)
+      const y = guideMargin + pos * cellSize
+      ctx.fillText(label, guideMargin / 2, y)
+      ctx.fillText(label, canvasW - guideMargin / 2, y)
+    }
+  }
+}
