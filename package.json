@@ -1,0 +1,31 @@
+{
+  "name": "bead-studio",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Turn any image into a bead / perler pattern in the browser. No login, no upload, no backend.",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "gen:palettes": "node scripts/gen-palettes.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "nuxt": "^3.15.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/i18n": "^9.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.9"
+  }
+}

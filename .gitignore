@@ -1,0 +1,25 @@
+# deps
+node_modules/
+
+# nuxt build output
+.nuxt/
+.output/
+.data/
+dist/
+
+# env / secrets（本项目无需任何环境变量即可运行）
+.env
+.env.*
+!.env.example
+
+# logs & editor
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# test / tooling
+coverage/
+.vitest/
