@@ -25,6 +25,8 @@ version of the same engine, so you can read the code and run it locally.
 
 ## Features
 
+<img src="docs/screenshot.png" width="760" alt="Bead Studio editor screenshot" />
+
 - **Image → pattern**: drag & drop / click to upload, crop with zoom & pan, then generate.
 - **Sizes**: 52 / 78 / 104 columns; height follows the source aspect ratio.
 - **Palettes**: pluggable color sets with optional “variants” (sub-sets of a palette).
@@ -36,6 +38,7 @@ version of the same engine, so you can read the code and run it locally.
 - **Statistics**: bead count per color, total beads, estimated weight, finished size in cm.
 - **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
   so codes stay readable), plus “Export PDF” which opens the browser print dialog.
+  Example output: [`docs/export-sample.png`](docs/export-sample.png) (52 columns, 2568×2732 px).
 - **Local draft**: your pattern and settings are restored from `localStorage` on reload.
 
 ## Quick start

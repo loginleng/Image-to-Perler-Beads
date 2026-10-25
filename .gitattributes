@@ -1,0 +1,7 @@
+# 统一用 LF 存文本（Windows 检出时按需转 CRLF，避免 diff 全文件变化）
+* text=auto eol=lf
+
+# 二进制资源不要做换行转换
+*.png binary
+*.gif binary
+*.woff2 binary
