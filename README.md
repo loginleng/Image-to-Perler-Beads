@@ -28,8 +28,7 @@ version of the same engine, so you can read the code and run it locally.
 <img src="docs/screenshot.png" width="760" alt="Bead Studio editor screenshot" />
 
 - **Image → pattern**: drag & drop / click to upload, crop with zoom & pan — the chart
-  regenerates automatically on every change (with a clear warning before it overwrites
-  manual edits).
+  regenerates automatically on every change (paper width, palette, style, advanced parameters).
 - **Sizes**: 52 / 78 / 104 columns; height follows the source aspect ratio.
 - **Palettes**: pluggable color sets with optional “variants” (sub-sets of a palette).
 - **Color matching**: Euclidean RGB, CIELAB (ΔE76) or **CIEDE2000**, switchable.
