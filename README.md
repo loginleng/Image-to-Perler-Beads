@@ -33,6 +33,13 @@ version of the same engine, so you can read the code and run it locally.
 - **Color matching**: Euclidean RGB, CIELAB (ΔE76) or **CIEDE2000**, switchable.
 - **Pattern styles**: `flat` / `detail` / `smooth` / `photo` — each one is a bundle of
   sampling, denoise and palette-merging parameters (see `PATTERN_STYLES`).
+- **Advanced parameters**: every knob behind those presets is exposed — sampling mode, color
+  matching (CIEDE2000 / ΔE76 / RGB), clustering, denoise strength & gate, region/palette merge,
+  color cap, dark-spot cleanup, dithering (strength, color pool, gradient gate) and the four
+  edge switches (line art, diagonal lines, outline restore, feature restamp). Presets only
+  provide defaults; any edit is marked as “N changed” with one-click reset.
+
+  <img src="docs/screenshot-advanced.png" width="760" alt="Advanced parameter panel" />
 - **Editing**: 1/3/5/7-cell brush, eraser, single-cell replace, whole-color replace, undo.
 - **Guides**: 10-cell guide grid, row/column coordinates with adjustable label step, zoom.
 - **Statistics**: bead count per color, total beads, estimated weight, finished size in cm.
@@ -114,7 +121,8 @@ bead-studio/
 │  ├─ CropDialog.vue              # crop modal (draggable, resizable box)
 │  ├─ ColorDialog.vue             # color picker modal (brush / replace / replace-all)
 │  ├─ UploadDropzone.vue          # drop zone + preview (pan & zoom)
-│  ├─ SettingsPanel.vue           # paper size · bead size · palette · style
+│  ├─ SettingsPanel.vue           # one card: basics · palette · style · advanced (collapsed)
+│  ├─ AdvancedSettings.vue        # all pattern knobs, grouped, with preset-diff badge
 │  ├─ PatternStatsCard.vue        # bead count table
 │  └─ ColorPicker.vue             # color swatch grid
 ├─ composables/useScrollLock.ts   # modal scroll lock
@@ -122,6 +130,7 @@ bead-studio/
 │  ├─ bead-algorithm.ts           # conversion + statistics + export sizing (core)
 │  ├─ bead-canvas.ts              # line widths that scale with the cell size + guide overlay
 │  ├─ bead-export.ts              # composes the exported PNG (chart + coords + stats block)
+│  ├─ pattern-params.ts           # presets → editable parameter set (diff / reset)
 │  └─ palettes-data.ts            # generated sample palette (replace me)
 ├─ i18n/locales/{en,zh}.json      # UI copy (tool.* only)
 ├─ scripts/gen-palettes.mjs       # JSON → palettes-data.ts
@@ -145,6 +154,7 @@ Coverage focuses on the pieces that are easy to break silently:
 - `tests/algorithm-chain.test.ts` — downscale → quantize → dither → statistics → export cell
   sizing invariants (all four pattern styles, determinism, `TRANSPARENT` handling, color cap).
 - `tests/bead-export.test.ts` — exported stats-block layout (row/column math, compression cap).
+- `tests/pattern-params.test.ts` — preset → parameter flattening (per-style values, diff count).
 - `tests/image-to-bead.test.ts`, `tests/helpers/color-utils.test.ts` — helper functions
   (denoise, dominant color, nearest color).
 

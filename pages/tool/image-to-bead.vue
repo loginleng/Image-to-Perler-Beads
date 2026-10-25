@@ -8,9 +8,11 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- ==================== Left: Settings Panel ==================== -->
-      <div class="min-w-0 space-y-6">
+      <!-- 大屏上左栏固定高度、自己滚动（sticky + max-h）：高级参数摊开后画布仍在视野里。
+           不用纯 sticky：内容比视口高时 sticky 会把下半截顶出屏幕，滚不到。 -->
+      <div class="min-w-0 space-y-6 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-1">
         <!-- Upload Area -->
-        <div class="modern-card p-6">
+        <div class="modern-card p-4">
           <UploadDropzone
             :preview-url="previewUrl"
             :cropped-preview-url="croppedPreviewUrl"
@@ -20,7 +22,7 @@
           />
         </div>
 
-        <!-- Settings Panel: grid size / bead size / palette / style -->
+        <!-- Settings Panel: 基础 / 色板 / 图纸风格 / 高级参数 -->
         <SettingsPanel
           :grid-sizes="gridSizes"
           :selected-grid-size="selectedGridSize"
@@ -36,12 +38,14 @@
           :selected-style="selectedStyle"
           :pattern-style-options="patternStyleOptions"
           :selected-pattern-style="patternStyle"
+          :pattern-params="patternParams"
           @update:selected-grid-size="selectedGridSize = $event"
           @update:bead-size="beadSize = $event"
           @update:selected-palette-id="selectedPaletteId = $event"
           @update:selected-variant-id="selectedVariantId = $event"
           @update:selected-style="selectedStyle = $event"
           @update:selected-pattern-style="patternStyle = $event"
+          @update:pattern-params="onParamsChange"
         />
       </div>
 
@@ -213,7 +217,8 @@
 
 <script setup lang="ts">
 import { ALL_BRAND_PALETTES } from '~/utils/palettes-data'
-import { PATTERN_STYLES, type BeadStyle, type PatternStyleKey } from '~/utils/bead-algorithm'
+import type { BeadStyle } from '~/utils/bead-algorithm'
+import { paramsFromStyle, toConvertOptions, type PatternParams } from '~/utils/pattern-params'
 import type { BeadColor } from '~/types'
 
 const { t } = useI18n()
@@ -261,6 +266,16 @@ const patternStyleOptions = [
   { key: 'photo', labelKey: 'tool.patternStylePhoto', icon: '◈' },
 ]
 const patternStyle = ref('flat')
+
+// 图纸参数：预设只负责给默认值，用户可以在「高级参数」里逐项改。
+// 切风格会把整组参数重置成那一档的值（否则会出现「风格是 photo、参数还是 flat」的错位）。
+const patternParams = ref<PatternParams>(paramsFromStyle(patternStyle.value))
+
+/** 高级参数改动：换成新对象（画布/预览都按值比较），并标记需要重新生成 */
+function onParamsChange(next: PatternParams) {
+  patternParams.value = next
+  if (imageData.value) paramsDirty.value = true
+}
 
 // Zoom
 const zoomLevel = ref(100)
@@ -445,8 +460,10 @@ watch([selectedPaletteId, selectedVariantId], () => {
   bumpRender()
 }, { deep: true })
 
-// 切换图纸风格（降采样 + 颜色距离 + 降噪）：必须点「生成图纸」才重新量化
-watch(patternStyle, () => {
+// 切换图纸风格：整组参数换成该预设的值（高级参数面板随之一致），
+// 但真正重新量化仍要点「生成图纸」
+watch(patternStyle, (key) => {
+  patternParams.value = paramsFromStyle(key)
   if (imageData.value) paramsDirty.value = true
 })
 
@@ -621,14 +638,13 @@ async function convertImage() {
 
     // 高度自适应：按原图宽高比换算，保持图案比例不变形
     const targetHeight = Math.max(1, Math.round(size * imageData.value.height / imageData.value.width))
-    const stylePreset = PATTERN_STYLES[patternStyle.value as PatternStyleKey] ?? PATTERN_STYLES.detail
     const conversionResult = convertImageToBeadPattern({
       imageData: imageData.value,
       targetWidth: size,
       targetHeight,
       palette: currentBrandColors.value,
-      // 图纸风格决定「降采样方式 + 颜色距离 + 降噪强度（+ 扁平的配色数）」，不要在这里散写具体数值
-      ...stylePreset,
+      // 全部图纸参数来自左栏（预设给了默认值，用户可逐项改），这里不再直接读 PATTERN_STYLES
+      ...toConvertOptions(patternParams.value),
     })
 
     result.value = conversionResult
