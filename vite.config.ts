@@ -5,6 +5,8 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 
 export default defineConfig({
+  // GitHub Pages 项目页挂在 /openBead/ 子路径下，base 必须一致（本地 dev 同样带前缀）
+  base: '/openBead/',
   server: {
     // 与 README 保持一致：http://localhost:3000
     port: 3000,

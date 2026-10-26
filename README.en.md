@@ -59,11 +59,11 @@ Requires **Node.js 20.19+** (or 22.12+). No other prerequisites.
 git clone https://github.com/loginleng/openBead.git bead-studio
 cd bead-studio
 npm install
-npm run dev      # http://localhost:3000
+npm run dev      # http://localhost:3000/openBead/ (base matches the GitHub Pages sub-path)
 ```
 
 That is the entire configuration — **no `.env`, no database, no API keys**. The editor is the
-home page (`/`) — there is no routing.
+site home page — there is no routing.
 
 > `npm install` also works with `pnpm`/`bun`. A `.npmrc` pins `legacy-peer-deps=true` to work
 > around a crash in npm 10.8's dependency resolver (it fails on the optional peers of

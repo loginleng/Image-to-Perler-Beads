@@ -47,10 +47,10 @@
 git clone https://github.com/loginleng/openBead.git bead-studio
 cd bead-studio
 npm install
-npm run dev      # http://localhost:3000
+npm run dev      # http://localhost:3000/openBead/ （base 与 GitHub Pages 子路径一致）
 ```
 
-配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器就是首页（`/`），没有路由跳转。
+配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器就是站点首页，没有路由跳转。
 
 > `pnpm` / `bun` 也可以安装。仓库的 `.npmrc` 固定了 `legacy-peer-deps=true`，用于绕开 npm 10.8 依赖解析器的一个崩溃（它处理不了 vitest 的可选 peer）；两种方式装出的依赖树完全一致。
 
