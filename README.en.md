@@ -62,8 +62,8 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-That is the entire configuration — **no `.env`, no database, no API keys**. The editor page
-lives at `/tool/image-to-bead`; `/` redirects there.
+That is the entire configuration — **no `.env`, no database, no API keys**. The editor is the
+home page (`/`) — there is no routing.
 
 > `npm install` also works with `pnpm`/`bun`. A `.npmrc` pins `legacy-peer-deps=true` to work
 > around a crash in npm 10.8's dependency resolver (it fails on the optional peers of
@@ -71,8 +71,7 @@ lives at `/tool/image-to-bead`; `/` redirects there.
 
 ```bash
 npm test          # vitest: algorithm chain + unit tests
-npm run build     # production build (Nitro/node-server)
-npm run generate  # static build → .output/public (for GitHub Pages / any CDN)
+npm run build     # static build → dist/ (GitHub Pages / any CDN)
 ```
 
 ## Palettes: bring your own
@@ -116,6 +115,10 @@ only interchange format between the algorithm, the canvas renderer and the expor
 
 ```
 bead-studio/
+├─ index.html                     # SPA entry (title / meta / font preload)
+├─ main.ts                        # createApp + vue-i18n (locale follows the browser, not persisted)
+├─ App.vue                        # layout (header / editor / footer)
+├─ vite.config.ts                 # Vite + auto-imports + component auto-registration
 ├─ pages/tool/image-to-bead.vue   # editor page: state, conversion, wiring
 ├─ components/tool/
 │  ├─ Toolbar.vue                 # view toggles · tools · brush settings · undo
@@ -135,7 +138,6 @@ bead-studio/
 │  ├─ bead-export.ts              # composes the exported PNG (chart + coords + stats block)
 │  ├─ pattern-params.ts           # presets → editable parameter set (diff / reset)
 │  └─ palettes-data.ts            # generated sample palette (replace me)
-├─ i18n/locales/{en,zh}.json      # UI copy (tool.* only)
 ├─ scripts/gen-palettes.mjs       # JSON → palettes-data.ts
 ├─ scripts/palettes.input.json    # palette input example
 └─ tests/                         # vitest, node environment

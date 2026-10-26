@@ -2,10 +2,10 @@ import type { Config } from 'tailwindcss'
 
 export default {
   content: [
+    './index.html',
+    './App.vue',
     './components/**/*.{vue,ts}',
-    './layouts/**/*.vue',
     './pages/**/*.vue',
-    './app.vue',
   ],
   theme: {
     extend: {

@@ -1,10 +1,14 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <div class="min-h-screen flex flex-col">
+    <AppHeader />
+    <main class="flex-1">
+      <ImageToBeadPage />
+    </main>
+    <AppFooter />
+  </div>
 </template>
 
 <script setup lang="ts">
-// 页面级 head（title / description）在 nuxt.config.ts 的 app.head 里统一给出，
-// 工具页是纯客户端计算，没有任何需要服务端注入的数据。
+// 单页应用：编辑器就是首页，不需要路由
+import ImageToBeadPage from './pages/tool/image-to-bead.vue'
 </script>

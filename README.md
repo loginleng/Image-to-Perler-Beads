@@ -50,14 +50,13 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器页面位于 `/tool/image-to-bead`，`/` 会重定向到该页面。
+配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器就是首页（`/`），没有路由跳转。
 
 > `pnpm` / `bun` 也可以安装。仓库的 `.npmrc` 固定了 `legacy-peer-deps=true`，用于绕开 npm 10.8 依赖解析器的一个崩溃（它处理不了 vitest 的可选 peer）；两种方式装出的依赖树完全一致。
 
 ```bash
 npm test          # vitest：算法主链 + 单元测试
-npm run build     # 生产构建（Nitro/node-server）
-npm run generate  # 静态构建 → .output/public（GitHub Pages / 任意 CDN）
+npm run build     # 静态构建 → dist/（GitHub Pages / 任意 CDN）
 ```
 
 ## 色板：接入你自己的数据
@@ -91,6 +90,10 @@ npm run generate  # 静态构建 → .output/public（GitHub Pages / 任意 CDN�
 
 ```
 bead-studio/
+├─ index.html                     # SPA 入口（标题 / meta / 字体预加载）
+├─ main.ts                        # createApp + vue-i18n（语言跟随浏览器，不持久化）
+├─ App.vue                        # 布局（Header / 编辑器 / Footer）
+├─ vite.config.ts                 # Vite + 自动导入 + 组件免注册
 ├─ pages/tool/image-to-bead.vue   # 编辑器页面：状态、转换、接线
 ├─ components/tool/
 │  ├─ Toolbar.vue                 # 视图开关 · 工具 · 笔刷设置 · 撤销
@@ -104,13 +107,13 @@ bead-studio/
 │  ├─ PatternStatsCard.vue        # 颗数统计表
 │  └─ ColorPicker.vue             # 色块网格
 ├─ composables/useScrollLock.ts   # 弹窗滚动锁定
+├─ i18n/locales/{en,zh}.json      # 界面文案（仅 tool.*）
 ├─ utils/
 │  ├─ bead-algorithm.ts           # 转换 + 统计 + 导出尺寸（核心）
 │  ├─ bead-canvas.ts              # 随格子等比缩放的线宽 + 辅助网格/坐标
 │  ├─ bead-export.ts              # 组装导出 PNG（图纸 + 坐标 + 统计区）
 │  ├─ pattern-params.ts           # 预设 → 可编辑参数组（差异统计 / 重置）
 │  └─ palettes-data.ts            # 生成的示例色板（请替换）
-├─ i18n/locales/{en,zh}.json      # 界面文案（仅 tool.*）
 ├─ scripts/gen-palettes.mjs       # JSON → palettes-data.ts
 ├─ scripts/palettes.input.json    # 色板输入示例
 └─ tests/                         # vitest，node 环境

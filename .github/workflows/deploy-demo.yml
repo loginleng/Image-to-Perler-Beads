@@ -27,12 +27,8 @@ jobs:
 
       - run: npm ci
 
-      # 项目页的地址是 https://<user>.github.io/<repo>/，
-      # 所以 baseURL 必须跟着仓库名走（用户页 <user>.github.io 时改成 '/'）。
-      - name: Static generate
-        run: npm run generate
-        env:
-          NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/
+      - name: Build (static)
+        run: npm run build
 
       # enablement: true — 首次部署时仓库还没开启 Pages，
       # 不加这个参数 configure-pages 会因 "Get Pages site" 404 而失败
@@ -42,7 +38,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .output/public
+          path: dist
 
   deploy:
     needs: build

@@ -1,6 +1,32 @@
 {
-  "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "strict": true
-  }
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "types": ["vite/client"],
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "auto-imports.d.ts",
+    "components.d.ts",
+    "main.ts",
+    "App.vue",
+    "pages/**/*.vue",
+    "components/**/*.vue",
+    "composables/**/*.ts",
+    "utils/**/*.ts",
+    "types/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
