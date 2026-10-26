@@ -17,15 +17,14 @@ fractal generated with ffmpeg, so the repository stays free of third-party image
 
 ## Try it
 
-| | Link | What it is |
+| Type | Link | Description |
 |---|---|---|
-| 🎨 | **https://perlerhome.com/pages/image-convert/index** | Live tool — open and start converting immediately, no login needed |
-| 🏠 | **https://perlerhome.com/intro** | The product & store-management system this tool comes from |
-| 🖥 | **https://loginleng.github.io/openBead/** | Static demo built from this repo (see [Static deployment](#static-deployment)) |
-| 📄 | https://perlerhome.com/features/image-to-perler | Longer write-up of the conversion pipeline |
+| 🖥 Static demo | **https://loginleng.github.io/openBead/** | GitHub Pages demo built from this repo (see [Static deployment](#static-deployment)) |
+| 🎨 Hosted tool | **https://perlerhome.com/pages/image-convert/index** | Hosted service running the same engine — open and convert immediately, no login needed |
+| 📄 Write-up | https://perlerhome.com/features/image-to-perler | Detailed article about the conversion pipeline |
 
-The first two links are the real product; this repository is the self-contained, trimmed
-version of the same engine, so you can read the code and run it locally.
+This repository is a standalone implementation of the conversion engine: run it locally or
+deploy it as a static site anywhere.
 
 ## Features
 
@@ -64,12 +63,12 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-That is the whole setup — **no `.env`, no database, no API keys**. The editor page lives at
-`/tool/image-to-bead`; `/` redirects there.
+That is the entire configuration — **no `.env`, no database, no API keys**. The editor page
+lives at `/tool/image-to-bead`; `/` redirects there.
 
-> `npm install` works with `pnpm`/`bun` too. A `.npmrc` pins `legacy-peer-deps=true` to dodge a
-> crash in npm 10.8's dependency resolver (it chokes on the optional peers of `vitest`); the
-> installed tree is identical either way.
+> `npm install` also works with `pnpm`/`bun`. A `.npmrc` pins `legacy-peer-deps=true` to work
+> around a crash in npm 10.8's dependency resolver (it fails on the optional peers of
+> `vitest`); the installed tree is identical either way.
 
 ```bash
 npm test          # vitest: algorithm chain + unit tests
@@ -179,11 +178,10 @@ automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
 
 ## Notes
 
-- Everything runs on the main thread: for very large charts (100+ columns) generation takes a
-  moment on low-end phones, but nothing blocks the UI permanently.
-- This project is a trimmed fork of our internal editor; commerce, 3D, accounts and the
-  server/database layer were removed on purpose, and all real brand palettes were replaced
-  with the fictional sample set.
+- All computation runs on the main thread: very large charts (100+ columns) take longer to
+  generate on low-end devices, but the UI is never permanently blocked.
+- All palettes in this repository are fictional sample data (invented brands and color
+  codes); no real brand's color chart is included.
 
 ## 中文文档
 

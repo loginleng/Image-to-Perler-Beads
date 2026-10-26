@@ -14,14 +14,13 @@
 
 ## 在线体验
 
-| | 链接 | 说明 |
+| 类型 | 链接 | 说明 |
 |---|---|---|
-| 🎨 | **https://perlerhome.com/pages/image-convert/index** | 线上工具 —— 打开即用，无需登录 |
-| 🏠 | **https://perlerhome.com/intro** | 本工具来源的产品与门店管理系统 |
-| 🖥 | **https://loginleng.github.io/openBead/** | 由本仓库构建的静态演示（见[静态部署](#静态部署)） |
-| 📄 | https://perlerhome.com/features/image-to-perler | 转换链路的详细文章 |
+| 🖥 静态演示 | **https://loginleng.github.io/openBead/** | 由本仓库构建的 GitHub Pages 演示（见[静态部署](#静态部署)） |
+| 🎨 线上工具 | **https://perlerhome.com/pages/image-convert/index** | 基于同一引擎的线上服务，打开即用，无需登录 |
+| 📄 技术文章 | https://perlerhome.com/features/image-to-perler | 转换链路的详细说明 |
 
-前两个是线上产品；本仓库是同一套引擎的自包含精简版，方便阅读代码与本地运行。
+本仓库是该转换引擎的独立实现，可直接本地运行，也可部署为任意静态站点。
 
 ## 功能
 
@@ -32,7 +31,7 @@
 - **色板**：可插拔的色板，支持「套装」（色板的子集）。
 - **配色算法**：RGB 欧氏距离 / Lab ΔE76 / **CIEDE2000**，可切换。
 - **图纸风格**：`扁平简洁` / `细节优先` / `平滑自然` / `照片写实` —— 每档是一组「采样 + 降噪 + 色号合并」参数的预设（见 `PATTERN_STYLES`）。
-- **高级参数**：预设背后的所有旋钮全部开放 —— 采样方式、配色匹配（CIEDE2000 / ΔE76 / RGB）、格内聚类、降噪强度与闸门、区域/色号合并、色号上限、暗点清理、抖动（强度、色号池、梯度选通）以及四个描边开关（线稿分层、斜线补充、轮廓还原、特征回贴）。预设只提供默认值；任何修改都会标成「已改 N 项」，可一键恢复。
+- **高级参数**：预设涉及的全部参数均已开放 —— 采样方式、配色匹配（CIEDE2000 / ΔE76 / RGB）、格内聚类、降噪强度与闸门、区域/色号合并、色号上限、暗点清理、抖动（强度、色号池、梯度选通）以及四个描边开关（线稿分层、斜线补充、轮廓还原、特征回贴）。预设仅提供默认值；任何修改都会标记为「已改 N 项」，并支持一键恢复预设。
 
   <img src="docs/screenshot-advanced.png" width="760" alt="高级参数面板" />
 - **编辑**：1/3/5/7 格画笔、橡皮擦、单格替色、整色替换、撤销。
@@ -52,7 +51,7 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-就这么多 —— **无需 `.env`、无数据库、无 API Key**。编辑器页面在 `/tool/image-to-bead`，`/` 会重定向过去。
+配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器页面位于 `/tool/image-to-bead`，`/` 会重定向到该页面。
 
 > `pnpm` / `bun` 也可以安装。仓库的 `.npmrc` 固定了 `legacy-peer-deps=true`，用于绕开 npm 10.8 依赖解析器的一个崩溃（它处理不了 vitest 的可选 peer）；两种方式装出的依赖树完全一致。
 
@@ -62,7 +61,7 @@ npm run build     # 生产构建（Nitro/node-server）
 npm run generate  # 静态构建 → .output/public（GitHub Pages / 任意 CDN）
 ```
 
-## 色板：替换成你自己的
+## 色板：接入你自己的数据
 
 > 仓库自带**虚构示例色板**（36 色、虚构品牌与色号），仅用于演示算法。
 > 实际生产请把 `utils/palettes-data.ts` 换成你自己的色板 —— **本项目不包含任何真实品牌的色号表。**
@@ -71,19 +70,19 @@ npm run generate  # 静态构建 → .output/public（GitHub Pages / 任意 CDN�
 
 1. 编辑 `scripts/palettes.input.json`（格式见 `scripts/gen-palettes.mjs` 顶部说明）—— 每个颜色只需 `code` 与 `hex`；`name` 可选，`price` 保持 `null` 即可。
 2. 运行 `npm run gen:palettes`。它会重新生成 `utils/palettes-data.ts`（并从 `hex` 推导 `r/g/b`，数据不会漂移）。
-3. 或者直接手改 `utils/palettes-data.ts` —— 就是一个普通 TS 常量。
+3. 也可直接修改 `utils/palettes-data.ts` —— 它是一个普通的 TypeScript 常量。
 
 请保持色号**稳定**：图纸存的是色号而不是 RGB，改色号名会让旧图纸失效。
 
-## 算法是怎么工作的
+## 算法说明
 
-`utils/bead-algorithm.ts` 是核心资产（约 4k 行，除一个画布辅助外零网络 / DOM 依赖）。`convertImageToBeadPattern` 的流水线：
+`utils/bead-algorithm.ts` 是核心模块（约 4k 行，除一个画布辅助外无网络 / DOM 依赖）。`convertImageToBeadPattern` 的流水线如下：
 
-1. **适配源图**（超过像素预算时分级面积降采样，细描边能活下来）。
-2. **检测**小特征（眼睛/圆点）与描边掩码（在源分辨率上做）。
-3. **逐格降采样**：默认边缘感知加权量化；「平滑 / 照片」档用面积平均 / 主色 / 中位数采样。
-4. **量化**每格到最近色板色，随后降噪、区域合并、全色板合并。
-5. **可选抖动**，带梯度选通（只有缓变渐变被抖动，硬边不动）。
+1. **适配源图**（超过像素预算时分级面积降采样，细描边得以保留）。
+2. **检测**小特征（眼睛/圆点）与描边掩码（在源分辨率上进行）。
+3. **逐格降采样**：默认边缘感知加权量化；「平滑 / 照片」档使用面积平均 / 主色 / 中位数采样。
+4. **量化**每格到最近的色板色，随后执行降噪、区域合并、全色板合并。
+5. **可选抖动**，带梯度选通（仅缓变渐变参与抖动，硬边缘不参与）。
 6. **回贴**小特征、对称校正、轮廓还原、暗点清理、色号数上限。
 7. **统计**每色号颗数，返回 `{ pattern, stats, totalBeads }`。
 
@@ -101,8 +100,8 @@ bead-studio/
 │  ├─ CropDialog.vue              # 裁剪弹窗（可拖动、可缩放的选框）
 │  ├─ ColorDialog.vue             # 选色弹窗（画笔 / 替色 / 整色替换）
 │  ├─ UploadDropzone.vue          # 上传区 + 预览（缩放平移）
-│  ├─ SettingsPanel.vue           # 一张卡片：基础 · 色板 · 风格 · 高级（默认收起）
-│  ├─ AdvancedSettings.vue        # 全部图纸旋钮，分组展示，带预设差异徽标
+│  ├─ SettingsPanel.vue           # 单卡片分段布局：基础 · 色板 · 风格 · 高级（默认收起）
+│  ├─ AdvancedSettings.vue        # 全部图纸参数，分组展示，带预设差异徽标
 │  ├─ PatternStatsCard.vue        # 颗数统计表
 │  └─ ColorPicker.vue             # 色块网格
 ├─ composables/useScrollLock.ts   # 弹窗滚动锁定
@@ -126,7 +125,7 @@ bead-studio/
 npm test
 ```
 
-覆盖重点是「容易被悄悄改坏」的部分：
+覆盖重点是「容易被无意改坏」的部分：
 
 - `tests/algorithm-chain.test.ts` — 降采样 → 量化 → 抖动 → 统计 → 导出尺寸的不变量（四档风格、确定性、`TRANSPARENT` 处理、色号上限）。
 - `tests/bead-export.test.ts` — 导出统计区排版（行列计算、压缩上限）。
@@ -147,8 +146,8 @@ NUXT_APP_BASE_URL=/openBead/ npm run generate
 
 ## 说明
 
-- 全部计算跑在主线程：超大图纸（100+ 列）在低端手机上生成会花一点时间，但不会永久卡死界面。
-- 本项目是我们内部编辑器的精简版：电商、3D、账号、服务端/数据库层都是有意移除的，真实品牌色板全部换成了虚构示例色板。
+- 全部计算在主线程完成：超大图纸（100+ 列）在低端设备上生成耗时会有所增加，但不会永久阻塞界面。
+- 仓库中的色板均为虚构示例数据（虚构品牌与色号），不包含任何真实品牌的色号表。
 
 ## License
 
