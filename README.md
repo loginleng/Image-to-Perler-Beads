@@ -16,7 +16,7 @@
 
 | 类型 | 链接 | 说明 |
 |---|---|---|
-| 🖥 静态演示 | **https://loginleng.github.io/openBead/** | 由本仓库构建的 GitHub Pages 演示（见[静态部署](#静态部署)） |
+| 🖥 静态演示 | **https://loginleng.github.io/openBead/** | 由本仓库构建的 GitHub Pages 演示 |
 | 🎨 线上工具 | **https://perlerhome.com/pages/image-convert/index** | 基于同一引擎的线上服务，打开即用，无需登录 |
 | 📄 技术文章 | https://perlerhome.com/features/image-to-perler | 转换链路的详细说明 |
 
@@ -38,7 +38,6 @@
 - **辅助**：每 10 格参考网格、四周行列坐标（步长可调）、缩放。
 - **统计**：各色号颗数、总颗数、估重、成品尺寸（cm）。
 - **导出**：PNG 自带坐标与色号（导出格尺寸自动选择，保证色号可读）。示例输出：[`docs/export-sample.png`](docs/export-sample.png)（52 列，2568×2732 px）。
-- **不写任何存储**：不使用 `localStorage`，刷新即回到干净画布。
 
 ## 快速开始
 
@@ -125,7 +124,7 @@ bead-studio/
 npm test
 ```
 
-覆盖重点是「容易被无意改坏」的部分：
+覆盖重点是算法核心链路：
 
 - `tests/algorithm-chain.test.ts` — 降采样 → 量化 → 抖动 → 统计 → 导出尺寸的不变量（四档风格、确定性、`TRANSPARENT` 处理、色号上限）。
 - `tests/bead-export.test.ts` — 导出统计区排版（行列计算、压缩上限）。
@@ -133,16 +132,6 @@ npm test
 - `tests/image-to-bead.test.ts`、`tests/helpers/color-utils.test.ts` — 辅助函数（降噪、主色提取、最近色）。
 
 `createBeadCanvas`（DOM `<canvas>`）没有单元测试 —— 它需要真实的 canvas 上下文。
-
-## 静态部署
-
-`npm run generate` 输出 `.output/public`。部署到 GitHub Pages 项目路径时，需带正确的 baseURL 构建：
-
-```bash
-NUXT_APP_BASE_URL=/openBead/ npm run generate
-```
-
-`.github/workflows/deploy-demo.yml` 已经这么做了（仓库名自动填入）。只需在 **Settings → Pages → Source 选 GitHub Actions** 一次。
 
 ## 说明
 

@@ -19,7 +19,7 @@ fractal generated with ffmpeg, so the repository stays free of third-party image
 
 | Type | Link | Description |
 |---|---|---|
-| 🖥 Static demo | **https://loginleng.github.io/openBead/** | GitHub Pages demo built from this repo (see [Static deployment](#static-deployment)) |
+| 🖥 Static demo | **https://loginleng.github.io/openBead/** | GitHub Pages demo built from this repo |
 | 🎨 Hosted tool | **https://perlerhome.com/pages/image-convert/index** | Hosted service running the same engine — open and convert immediately, no login needed |
 | 📄 Write-up | https://perlerhome.com/features/image-to-perler | Detailed article about the conversion pipeline |
 
@@ -50,7 +50,6 @@ deploy it as a static site anywhere.
 - **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
   so codes stay readable). Example output: [`docs/export-sample.png`](docs/export-sample.png)
   (52 columns, 2568×2732 px).
-- **No storage, no cookies**: nothing is written to `localStorage`; reload gives you a clean canvas.
 
 ## Quick start
 
@@ -153,7 +152,7 @@ mutates the pattern and recomputes stats — no second source of truth.
 npm test
 ```
 
-Coverage focuses on the pieces that are easy to break silently:
+Coverage focuses on the algorithm core chain:
 
 - `tests/algorithm-chain.test.ts` — downscale → quantize → dither → statistics → export cell
   sizing invariants (all four pattern styles, determinism, `TRANSPARENT` handling, color cap).
@@ -163,18 +162,6 @@ Coverage focuses on the pieces that are easy to break silently:
   (denoise, dominant color, nearest color).
 
 `createBeadCanvas` (DOM `<canvas>`) is not unit-tested; it needs a real canvas context.
-
-## Static deployment
-
-`npm run generate` writes `.output/public`. For GitHub Pages under a project path, build with
-the right base URL:
-
-```bash
-NUXT_APP_BASE_URL=/openBead/ npm run generate
-```
-
-`.github/workflows/deploy-demo.yml` does exactly that (the repo name is filled in
-automatically). Enable **Settings → Pages → Source: GitHub Actions** once.
 
 ## Notes
 
