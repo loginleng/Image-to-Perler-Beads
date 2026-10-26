@@ -21,6 +21,7 @@ fractal generated with ffmpeg, so the repository stays free of third-party image
 |---|---|---|
 | 🖥 Static demo | **https://loginleng.github.io/openBead/** | GitHub Pages demo built from this repo |
 | 🎨 Hosted tool | **https://perlerhome.com/pages/image-convert/index** | Hosted service running the same engine — open and convert immediately, no login needed |
+| 🏠 Product page | **https://perlerhome.com/intro** | Product introduction page |
 | 📄 Write-up | https://perlerhome.com/features/image-to-perler | Detailed article about the conversion pipeline |
 
 This repository is a standalone implementation of the conversion engine: run it locally or

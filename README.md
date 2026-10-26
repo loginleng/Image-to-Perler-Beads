@@ -18,6 +18,7 @@
 |---|---|---|
 | 🖥 静态演示 | **https://loginleng.github.io/openBead/** | 由本仓库构建的 GitHub Pages 演示 |
 | 🎨 线上工具 | **https://perlerhome.com/pages/image-convert/index** | 基于同一引擎的线上服务，打开即用，无需登录 |
+| 🏠 产品介绍 | **https://perlerhome.com/intro** | 产品介绍页 |
 | 📄 技术文章 | https://perlerhome.com/features/image-to-perler | 转换链路的详细说明 |
 
 本仓库是该转换引擎的独立实现，可直接本地运行，也可部署为任意静态站点。
