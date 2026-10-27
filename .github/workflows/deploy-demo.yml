@@ -27,8 +27,12 @@ jobs:
 
       - run: npm ci
 
+      # 项目页地址是 https://<user>.github.io/<repo>/，base 必须等于仓库名；
+      # 由这里注入，改仓库名不需要改代码
       - name: Build (static)
         run: npm run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
 
       # enablement: true — 首次部署时仓库还没开启 Pages，
       # 不加这个参数 configure-pages 会因 "Get Pages site" 404 而失败

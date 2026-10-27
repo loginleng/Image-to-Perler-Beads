@@ -19,7 +19,7 @@ fractal generated with ffmpeg, so the repository stays free of third-party image
 
 | Type | Link | Description |
 |---|---|---|
-| 🖥 Static demo | **https://loginleng.github.io/openBead/** | GitHub Pages demo built from this repo |
+| 🖥 Static demo | **https://loginleng.github.io/Image-to-Perler-Beads/** | GitHub Pages demo built from this repo |
 | 🎨 Hosted tool | **https://perlerhome.com/pages/image-convert/index** | Online H5 service running the same engine — open and convert immediately, no login needed |
 | 🏠 Product page | **https://perlerhome.com/intro** | A store-management system built on the same image-to-bead capability |
 
@@ -56,10 +56,10 @@ deploy it as a static site anywhere.
 Requires **Node.js 20.19+** (or 22.12+). No other prerequisites.
 
 ```bash
-git clone https://github.com/loginleng/openBead.git bead-studio
+git clone https://github.com/loginleng/Image-to-Perler-Beads.git bead-studio
 cd bead-studio
 npm install
-npm run dev      # http://localhost:3000/openBead/ (base matches the GitHub Pages sub-path)
+npm run dev      # http://localhost:3000/Image-to-Perler-Beads/ (base matches the GitHub Pages sub-path)
 ```
 
 That is the entire configuration — **no `.env`, no database, no API keys**. The editor is the

@@ -5,8 +5,9 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 
 export default defineConfig({
-  // GitHub Pages 项目页挂在 /openBead/ 子路径下，base 必须一致（本地 dev 同样带前缀）
-  base: '/openBead/',
+  // GitHub Pages 项目页挂在 /<仓库名>/ 子路径下，base 必须一致（本地 dev 同样带前缀）。
+  // CI 里由 workflow 注入 VITE_BASE（= 仓库名），改仓库名不需要动代码。
+  base: process.env.VITE_BASE ?? '/Image-to-Perler-Beads/',
   server: {
     // 与 README 保持一致：http://localhost:3000
     port: 3000,

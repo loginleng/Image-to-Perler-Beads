@@ -16,7 +16,7 @@
 
 | 类型 | 链接 | 说明 |
 |---|---|---|
-| 🖥 静态演示 | **https://loginleng.github.io/openBead/** | 由本仓库构建的 GitHub Pages 演示 |
+| 🖥 静态演示 | **https://loginleng.github.io/Image-to-Perler-Beads/** | 由本仓库构建的 GitHub Pages 演示 |
 | 🎨 线上工具 | **https://perlerhome.com/pages/image-convert/index** | 基于同一引擎的线上 H5 服务，打开即用，无需登录 |
 | 🏠 产品介绍 | **https://perlerhome.com/intro** | 基于同一套转拼豆能力构建的门店经营系统 |
 
@@ -44,10 +44,10 @@
 需要 **Node.js 20.19+**（或 22.12+），无其它前置条件。
 
 ```bash
-git clone https://github.com/loginleng/openBead.git bead-studio
+git clone https://github.com/loginleng/Image-to-Perler-Beads.git bead-studio
 cd bead-studio
 npm install
-npm run dev      # http://localhost:3000/openBead/ （base 与 GitHub Pages 子路径一致）
+npm run dev      # http://localhost:3000/Image-to-Perler-Beads/ （base 与 GitHub Pages 子路径一致）
 ```
 
 配置到此为止 —— **无需 `.env`、无数据库、无 API Key**。编辑器就是站点首页，没有路由跳转。
