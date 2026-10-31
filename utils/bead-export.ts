@@ -10,7 +10,7 @@ import {
   type BeadStyle,
   type ColorStat
 } from './bead-algorithm'
-import { drawGuideOverlay, GUIDE_MARGIN } from './bead-canvas'
+import { CANVAS_BG, drawGuideOverlay, GUIDE_MARGIN } from './bead-canvas'
 import type { BeadColor } from '~/types'
 
 /** 导出格子优先 48px（色号清晰可读），超长图纸自动缩小避免画布过大 */
@@ -167,7 +167,7 @@ export function renderExportCanvas(o: ExportPatternOptions): HTMLCanvasElement {
   exportCanvas.height = canvasH + statH
   const ctx = exportCanvas.getContext('2d')!
   ctx.imageSmoothingEnabled = false
-  ctx.fillStyle = '#F0F0F0'
+  ctx.fillStyle = CANVAS_BG
   ctx.fillRect(0, 0, canvasW, canvasH)
   ctx.drawImage(beadCanvas, guideMargin, guideMargin)
 

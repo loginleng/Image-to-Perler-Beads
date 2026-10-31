@@ -1,5 +1,5 @@
 import type { BeadColor } from '~/types'
-import { BEAD_CRISP_GAP, BEAD_GAP_MIN_CELL, calcBeadLineMetrics } from './bead-canvas'
+import { BEAD_CRISP_GAP, BEAD_GAP_MIN_CELL, CANVAS_BG, calcBeadLineMetrics } from './bead-canvas'
 
 /**
  * 拼豆图纸转换（纯计算，与平台无关；取像素在文件末尾按 H5 / 小程序分别实现）。
@@ -3993,7 +3993,12 @@ export function createBeadCanvas(
   style: BeadStyle = 'grid-square',
   showCodes: boolean = false,
   /** 导出模式：整数像素对齐绘制，消除半像素抗锯齿造成的模糊 */
-  crisp: boolean = false
+  crisp: boolean = false,
+  /**
+   * 底色：默认白色；传 null 则背景透明（预览要把逐格细网格画在珠子下面，
+   * 由调用方自己铺底色）。
+   */
+  background: string | null = CANVAS_BG
 ): HTMLCanvasElement {
   const rows = pattern.length
   const cols = pattern[0].length
@@ -4009,9 +4014,11 @@ export function createBeadCanvas(
   // 本项目 2D 画布是 1:1 像素绘制，所以像素比传 1。
   const { gap, cellLineWidth } = calcBeadLineMetrics(cellSize, 1)
 
-  // Draw background grid
-  ctx.fillStyle = '#F0F0F0'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  // 铺底色（白色）：空白画布就是一张白纸；传 null 时保持透明，交给调用方铺
+  if (background) {
+    ctx.fillStyle = background
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
@@ -4060,11 +4067,19 @@ export function createBeadCanvas(
         ctx.fillStyle = hexColor
         ctx.fill()
 
-        // Cut out the center hole — 用纸色填充，预览与导出一致，任何查看器都不会发黑
+        // Cut out the center hole — 用纸色填充，预览与导出一致，任何查看器都不会发黑；
+        // 透明底模式（预览）下把孔真正挖空，让下层细网格/底色透出来
         ctx.beginPath()
         ctx.arc(px + cellSize / 2, py + cellSize / 2, innerRadius, 0, Math.PI * 2)
-        ctx.fillStyle = '#F0F0F0'
-        ctx.fill()
+        if (background) {
+          ctx.fillStyle = background
+          ctx.fill()
+        } else {
+          ctx.save()
+          ctx.globalCompositeOperation = 'destination-out'
+          ctx.fill()
+          ctx.restore()
+        }
 
         // Draw inner ring border
         ctx.beginPath()

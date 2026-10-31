@@ -60,7 +60,14 @@
 // 由页面统一改 pattern / 重算统计，保证「一个数据源」。
 import type { CSSProperties } from 'vue'
 import { createBeadCanvas, type BeadStyle } from '~/utils/bead-algorithm'
-import { drawGuideOverlay, GUIDE_MARGIN } from '~/utils/bead-canvas'
+import {
+  CANVAS_BG,
+  FINE_GRID_COLOR,
+  FINE_GRID_MIN_CELL,
+  GUIDE_MARGIN,
+  calcBeadLineMetrics,
+  drawGuideOverlay
+} from '~/utils/bead-canvas'
 import type { BeadColor } from '~/types'
 
 const props = withDefaults(defineProps<{
@@ -165,7 +172,11 @@ function render() {
   const rows = pattern.length
   const margin = props.showCoords ? GUIDE_MARGIN : 0
 
-  const beadCanvas = createBeadCanvas(pattern, props.colors, cellSize, props.beadStyle, false /* 预览不显示色号 */)
+  // 透明底：底色与逐格细网格由这里画，珠子叠在上面（网格在珠子下面，不压珠色）
+  const beadCanvas = createBeadCanvas(
+    pattern, props.colors, cellSize, props.beadStyle,
+    false /* 预览不显示色号 */, false, null /* 透明底 */
+  )
 
   const canvasW = cols * cellSize + margin * 2
   const canvasH = rows * cellSize + margin * 2
@@ -173,8 +184,29 @@ function render() {
   canvas.height = canvasH
   const ctx = canvas.getContext('2d')!
   ctx.imageSmoothingEnabled = false
-  ctx.fillStyle = '#F0F0F0'
+  ctx.fillStyle = CANVAS_BG
   ctx.fillRect(0, 0, canvasW, canvasH)
+
+  // 逐格细网格：让空格子也看得出是一个个格子（空白区域否则就是一大片白纸，没法定位要画哪格）。
+  // 一次性拼好所有线再 stroke —— 200×200 的图纸逐格 strokeRect 是 4 万次调用，涂画每帧重绘会卡。
+  if (props.showGrid && cellSize >= FINE_GRID_MIN_CELL) {
+    const { cellLineWidth } = calcBeadLineMetrics(cellSize, 1)
+    ctx.beginPath()
+    for (let i = 0; i <= cols; i++) {
+      const x = margin + i * cellSize
+      ctx.moveTo(x, margin)
+      ctx.lineTo(x, margin + rows * cellSize)
+    }
+    for (let j = 0; j <= rows; j++) {
+      const y = margin + j * cellSize
+      ctx.moveTo(margin, y)
+      ctx.lineTo(margin + cols * cellSize, y)
+    }
+    ctx.strokeStyle = FINE_GRID_COLOR
+    ctx.lineWidth = cellLineWidth
+    ctx.stroke()
+  }
+
   ctx.drawImage(beadCanvas, margin, margin)
 
   drawGuideOverlay(ctx, {

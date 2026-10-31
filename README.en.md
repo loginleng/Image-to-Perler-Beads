@@ -45,7 +45,8 @@ deploy it as a static site anywhere.
 
   <img src="docs/screenshot-advanced.png" width="760" alt="Advanced parameter panel" />
 - **Editing**: 1/3/5/7-cell brush, eraser, single-cell replace, whole-color replace, undo.
-- **Guides**: 10-cell guide grid, row/column coordinates with adjustable label step, zoom.
+- **Guides**: white canvas with a per-cell fine grid (empty cells stay visible), bolder lines every
+  10 cells, row/column coordinates with adjustable label step, zoom.
 - **Statistics**: bead count per color, total beads, estimated weight, finished size in cm.
 - **Export**: PNG with printed coordinates and color codes (cell size is chosen automatically
   so codes stay readable). Example output: [`docs/export-sample.png`](docs/export-sample.png)
